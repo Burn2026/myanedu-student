@@ -1,0 +1,920 @@
+#root {
+  width: 100%;
+  margin: 0 auto;
+}
+
+body {
+  background-color: #f8fafc;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Main Container Fix --- */
+.container {
+  max-width: 1200px; /* Dashboard အတွက် အကျယ်ချဲ့ထားသည် */
+  /* Navbar Fixed ဖြစ်နေလို့ Content တွေကို အောက်ချပေးရပါမယ် (120px) */
+  margin: 120px auto 40px auto; 
+  padding: 0 20px;
+  position: relative;
+  z-index: 1; /* Navbar အောက်ရောက်နေစေရန် */
+}
+
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.1;
+}
+
+/* --- Search Form Section --- */
+.search-card {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: #2563eb;
+}
+
+.search-btn {
+  padding: 12px 25px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.error-msg {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #fca5a5;
+}
+
+/* --- Responsive Table Card --- */
+.table-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  overflow: hidden; 
+}
+
+.table-scroll {
+  overflow-x: auto;
+  width: 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+th {
+  background-color: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.status-badge.success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 600px) {
+  .container {
+    margin-top: 100px;
+    padding: 0 15px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .search-box {
+    flex-direction: column;
+  }
+  
+  .search-input, 
+  .search-btn {
+    width: 100%;
+    border-radius: 8px !important;
+  }
+  
+  .search-btn {
+    margin-top: 10px;
+  }
+}
+
+/* --- Premium Success Modal --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Navbar အပေါ်ရောက်ရန် */
+  backdrop-filter: blur(3px); 
+}
+
+.modal-box {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 90%;
+  width: 400px;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.success-icon-circle {
+  width: 80px;
+  height: 80px;
+  background-color: #dcfce7;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 20px auto;
+}
+
+.success-icon {
+  font-size: 40px;
+  color: #16a34a; 
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 10px;
+}
+
+.modal-desc {
+  color: #64748b;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.modal-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+.modal-btn:hover {
+  background-color: #1d4ed8;
+}
+
+/* --- Course Advertising Section --- */
+.promo-section {
+  padding: 40px 10px;
+  background: #f8fafc;
+}
+
+.promo-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.promo-title {
+  font-size: 28px;
+  background: -webkit-linear-gradient(#2563eb, #06b6d4);
+  -webkit-background-clip: text;
+  background-clip: text; 
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.promo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.promo-card {
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  position: relative;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease;
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+}
+
+.promo-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.15);
+}
+
+.status-badge-corner {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-open {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-full {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.course-img-placeholder {
+  height: 120px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
+.promo-course-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 5px 0;
+}
+
+.promo-batch {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.seats-info {
+  font-size: 13px;
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.promo-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-register {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+}
+.btn-register:hover { background: #1d4ed8; }
+
+.btn-full {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* --- Auth Selection Modal --- */
+.auth-modal-box {
+  background: white;
+  padding: 40px;
+  border-radius: 24px;
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.auth-modal-header h3 {
+  font-size: 22px;
+  color: #1e293b;
+  margin: 0 0 10px 0;
+}
+
+.auth-modal-header p {
+  color: #64748b;
+  margin-bottom: 30px;
+}
+
+.auth-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 600px) {
+  .auth-options-grid {
+    grid-template-columns: 1fr; 
+  }
+}
+
+.auth-option-card {
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.auth-option-card:hover {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+  transform: translateY(-3px);
+}
+
+.auth-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.auth-label {
+  font-weight: 800;
+  color: #334155;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.auth-sub {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.close-modal-btn {
+  margin-top: 25px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+/* --- Loading Spinner --- */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.7); 
+  backdrop-filter: blur(5px); 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e2e8f0;
+  border-top: 5px solid #2563eb; 
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+.loading-text {
+  font-weight: bold;
+  color: #334155;
+  font-size: 16px;
+  letter-spacing: 1px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* --- Instructor Section --- */
+.instructor-section {
+  padding: 50px 20px;
+  background: white;
+  text-align: center;
+}
+
+.instructor-header h2 {
+  font-size: 28px;
+  color: #1e293b;
+  margin-bottom: 10px;
+}
+
+.instructor-header p {
+  color: #64748b;
+  max-width: 600px;
+  margin: 0 auto 40px auto;
+  line-height: 1.6;
+}
+
+.instructor-grid {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.instructor-card {
+  background: white;
+  width: 280px;
+  padding: 30px 20px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1);
+  border: 1px solid #f1f5f9;
+  transition: transform 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.instructor-card:hover {
+  transform: translateY(-10px);
+  border-color: #bfdbfe;
+}
+
+.instructor-card::before {
+  content: "";
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.avatar-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: white;
+  font-size: 36px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+  position: relative;
+  z-index: 1;
+  border: 4px solid white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.inst-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 5px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.inst-role {
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.inst-bio {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.exp-badge {
+  background: #f1f5f9;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 600;
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Professional Footer --- */
+.footer {
+  background-color: #1e293b;
+  color: #f8fafc;
+  padding: 60px 20px 20px 20px;
+  margin-top: 80px;
+  border-top: 5px solid #2563eb;
+}
+
+.footer-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.footer-section h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #60a5fa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.footer-section p, 
+.footer-section a {
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.8;
+  display: block;
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: color 0.2s;
+}
+
+.footer-section a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.social-links {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.social-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  transition: background 0.3s;
+  cursor: pointer;
+}
+
+.social-icon:hover {
+  background: #2563eb;
+}
+
+.footer-bottom {
+  text-align: center;
+  border-top: 1px solid #334155;
+  padding-top: 20px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* --- Premium Sticky Navbar --- */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px); 
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* (FIXED) Navbar ကို အမြင့်ဆုံး Layer မှာထားသည် */
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.nav-container {
+  width: 100%;
+  max-width: 1000px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-size: 20px;
+  font-weight: 900;
+  background: -webkit-linear-gradient(#2563eb, #06b6d4);
+  -webkit-background-clip: text;
+  background-clip: text; 
+  -webkit-text-fill-color: transparent;
+  cursor: pointer;
+  letter-spacing: -0.5px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 25px;
+  align-items: center; /* Bell Icon နဲ့ Profile တစ်တန်းတည်းထားရန် */
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #2563eb;
+}
+
+.nav-btn-logout {
+  padding: 8px 16px;
+  background-color: #fee2e2;
+  color: #ef4444;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-btn-logout:hover {
+  background-color: #fecaca;
+}
+
+/* Mobile Responsive Navbar */
+@media (max-width: 600px) {
+  .nav-links {
+    gap: 15px;
+  }
+  .nav-link {
+    font-size: 12px;
+  }
+  .nav-logo {
+    font-size: 16px;
+  }
+}
+
+/* --- Student Dashboard Layout --- */
+.dashboard-layout {
+  display: flex;
+  min-height: 80vh;
+  background-color: #f1f5f9;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  position: relative; /* Fixed: Dashboard Content Navbar အောက်မဝင်အောင် */
+  z-index: 0;
+}
+
+/* Sidebar */
+.dashboard-sidebar {
+  width: 250px;
+  background-color: white;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.sidebar-profile {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sidebar-avatar {
+  width: 70px;
+  height: 70px;
+  background: #2563eb;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+  margin: 0 auto 10px auto;
+}
+
+.sidebar-name {
+  font-weight: bold;
+  color: #1e293b;
+  font-size: 16px;
+}
+
+.sidebar-phone {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-item {
+  padding: 12px 15px;
+  border-radius: 10px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.menu-item:hover {
+  background-color: #f8fafc;
+  color: #2563eb;
+}
+
+.menu-item.active {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-weight: bold;
+}
+
+/* Main Content Area */
+.dashboard-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+.dashboard-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1e293b;
+  margin-bottom: 25px;
+}
+
+/* Stats Cards (Overview) */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.stat-info h4 {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.stat-info p {
+  margin: 5px 0 0 0;
+  color: #1e293b;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+  .dashboard-sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    padding: 15px;
+    gap: 20px;
+    overflow-x: auto;
+  }
+  .sidebar-profile {
+    display: none; 
+  }
+  .sidebar-menu {
+    flex-direction: row;
+    width: 100%;
+  }
+  .menu-item {
+    white-space: nowrap;
+    padding: 10px;
+    font-size: 14px;
+  }
+}
