@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import './StudentDashboard.css'; // CSS Import
+import React, { useState, useEffect } from 'react';
+import './StudentDashboard.css'; 
 import StudentCard from './StudentCard';
 import OnlinePayment from './OnlinePayment';
 import ExamList from './ExamList';
@@ -11,6 +11,13 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   const [selectedClass, setSelectedClass] = useState(null); 
   const [renewBatchId, setRenewBatchId] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
+
+  // --- DEBUGGING: Data ကို Browser Console တွင်စစ်ဆေးရန် ---
+  useEffect(() => {
+    if (payments.length > 0) {
+        console.log("Payment Data from Backend:", payments);
+    }
+  }, [payments]);
 
   // Stats Logic
   const activePayments = payments.filter(p => p.status === 'verified');
@@ -25,13 +32,15 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
   };
 
-  // ✅ ပြင်ဆင်ချက် (၁): Transaction ID အစစ်ကို ဦးစားပေးပြသခြင်း
+  // ✅ ပြင်ဆင်ချက်: Transaction ID ကို ပုံစံမျိုးစုံဖြင့် ရှာဖွေခြင်း
   const getDisplayID = (payment) => {
-    // 1. Transaction ID ရှိပြီး null မဟုတ်ရင် အဲ့ဒါကိုပဲ ပြမယ် (ဥပမာ: "293847")
-    if (payment.transaction_id && payment.transaction_id !== "null" && payment.transaction_id !== "") {
-        return payment.transaction_id;
+    // Backend မှ လာနိုင်သော နာမည်ကွဲများကို စစ်ဆေးပါမည်
+    const tID = payment.transaction_id || payment.trans_id || payment.tid;
+
+    if (tID && tID !== "null" && tID !== "") {
+        return tID; // Transaction ID အစစ်ကို ပြမည်
     }
-    // 2. မရှိရင်တော့ System ID (#1, #2...) ကိုပဲ ပြမယ်
+    // မရှိပါက System ID ကို ပြမည်
     return `#${payment.id}`;
   };
 
@@ -55,7 +64,8 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     doc.setFontSize(14); doc.text("Official Payment Receipt", 105, 30, null, null, "center");
     
     doc.setTextColor(0, 0, 0); doc.setFontSize(12);
-    // Receipt မှာလည်း Function ကို ခေါ်သုံးထားပါတယ်
+    
+    // Receipt တွင်လည်း ID အမှန်ပေါ်စေရန်
     doc.text(`Receipt ID: ${getDisplayID(payment)}`, 20, 60);
     doc.text(`Date: ${new Date(payment.payment_date).toLocaleDateString()}`, 150, 60);
     
