@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import './App.css' // Global Layout အတွက်
+import './App.css' 
 
 // Components
 import Navbar from './components/Navbar';
@@ -100,10 +100,26 @@ function App() {
     window.location.reload(); 
   };
 
+  // ✅ (UPDATED) Navigation Logic
   const handleNavigate = (section) => {
+    // 1. Home သို့မဟုတ် Register မဟုတ်လျှင် Search View သို့ အရင်ပြောင်းမည်
+    if (!student && view === 'register' && section !== 'register') {
+        setView('search');
+        // View ပြောင်းပြီးမှ Scroll ဆင်းရန် အချိန်အနည်းငယ်စောင့်မည်
+        setTimeout(() => scrollToSection(section), 100);
+    } else {
+        scrollToSection(section);
+    }
+  };
+
+  // Scroll Helper Function
+  const scrollToSection = (section) => {
     if (section === 'home') {
        window.scrollTo({ top: 0, behavior: 'smooth' });
-       if(!student) setView('search'); 
+    } else if (section === 'register') {
+       // "ကျောင်းအပ်နှံရန်" နှိပ်လျှင် Register Form ဖွင့်မည်
+       if(!student) setView('register');
+       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
        const element = document.getElementById(section);
        if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -135,7 +151,6 @@ function App() {
 
       {/* Main Layout Logic */}
       {student && student.id ? (
-          // --- LOGGED IN VIEW (Full Width) ---
           <div style={{ marginTop: '70px', flex: 1, width: '100%' }}>
              <StudentDashboard 
                 student={student}
@@ -147,7 +162,6 @@ function App() {
             />
           </div>
       ) : (
-          // --- GUEST VIEW (Centered Container) ---
           <div className="container">
             
             <div style={{ textAlign: 'center', marginBottom: '40px' }} id="home">
@@ -219,8 +233,8 @@ function App() {
         </div>
       )}
 
-      {/* Only show Footer on Guest View */}
-      {!student && <Footer />}
+      {/* ✅ Footer ကို onNavigate function ထည့်ပေးလိုက်ပါ */}
+      {!student && <Footer onNavigate={handleNavigate} />}
     </div>
   )
 }

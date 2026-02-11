@@ -1,7 +1,17 @@
 import React from 'react';
 import './Footer.css';
 
-function Footer() {
+// ✅ onNavigate prop ကို လက်ခံရယူပါ
+function Footer({ onNavigate }) {
+  
+  // Link နှိပ်လိုက်ရင် အလုပ်လုပ်မည့် Function
+  const handleLinkClick = (e, section) => {
+    e.preventDefault(); // Browser က Link အတိုင်း Refresh မဖြစ်သွားအောင် တားမည်
+    if (onNavigate) {
+      onNavigate(section); // App.jsx မှ ပို့လိုက်သော function ကို ခေါ်မည်
+    }
+  };
+
   return (
     <footer className="footer">
       <div className="footer-content">
@@ -21,13 +31,26 @@ function Footer() {
           </div>
         </div>
 
-        {/* Section 2: Quick Links */}
+        {/* Section 2: Quick Links (✅ ပြင်ဆင်ထားသော အပိုင်း) */}
         <div className="footer-section">
           <h3>အမြန် လမ်းညွှန်</h3>
-          <a href="#">ပင်မစာမျက်နှာ</a>
-          <a href="#">ဖွင့်လှစ်ထားသော သင်တန်းများ</a>
-          <a href="#">ဆရာ/ဆရာမများ</a>
-          <a href="#">ကျောင်းအပ်နှံရန်</a>
+          
+          <a href="#home" onClick={(e) => handleLinkClick(e, 'home')}>
+            ပင်မစာမျက်နှာ
+          </a>
+          
+          <a href="#courses" onClick={(e) => handleLinkClick(e, 'courses')}>
+            ဖွင့်လှစ်ထားသော သင်တန်းများ
+          </a>
+          
+          <a href="#instructors" onClick={(e) => handleLinkClick(e, 'instructors')}>
+            ဆရာ/ဆရာမများ
+          </a>
+          
+          {/* 'register' ဟု ပို့လိုက်လျှင် Register Form သို့ ရောက်သွားမည် */}
+          <a href="#register" onClick={(e) => handleLinkClick(e, 'register')}>
+            ကျောင်းအပ်နှံရန်
+          </a>
         </div>
 
         {/* Section 3: Contact Info */}
