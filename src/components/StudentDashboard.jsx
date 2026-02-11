@@ -12,10 +12,13 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   const [renewBatchId, setRenewBatchId] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
-  // --- DEBUGGING: Data ကို Browser Console တွင်စစ်ဆေးရန် ---
+  // --- DEBUGGING ---
+  // Browser Console တွင် Data များကို စစ်ဆေးရန် (F12 နှိပ်ပြီး Console တွင်ကြည့်ပါ)
   useEffect(() => {
     if (payments.length > 0) {
-        console.log("Payment Data from Backend:", payments);
+        console.log("🔥 Payment Data Received:", payments);
+        console.log("🔑 Available Keys:", Object.keys(payments[0])); 
+        // ဒီအပေါ်က line မှာ 'transaction_id' မပါရင် Backend မှာ ပြင်ရပါလိမ့်မယ်
     }
   }, [payments]);
 
@@ -32,15 +35,16 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
   };
 
-  // ✅ ပြင်ဆင်ချက်: Transaction ID ကို ပုံစံမျိုးစုံဖြင့် ရှာဖွေခြင်း
+  // ✅ ID ပြဿနာဖြေရှင်းခြင်း (Transaction ID မရှိရင် System ID ပြမည်)
   const getDisplayID = (payment) => {
-    // Backend မှ လာနိုင်သော နာမည်ကွဲများကို စစ်ဆေးပါမည်
-    const tID = payment.transaction_id || payment.trans_id || payment.tid;
+    // 1. Backend မှ လာနိုင်သော နာမည်ကွဲများကို စုံစမ်းခြင်း
+    const tID = payment.transaction_id || payment.trans_id || payment.tid || payment.receipt_no || payment.ref_no;
 
+    // 2. Data ရှိပြီး null မဟုတ်လျှင် ပြမည်
     if (tID && tID !== "null" && tID !== "") {
-        return tID; // Transaction ID အစစ်ကို ပြမည်
+        return tID;
     }
-    // မရှိပါက System ID ကို ပြမည်
+    // 3. မရှိပါက System ID (#1, #2...) ကိုပဲ ပြမည်
     return `#${payment.id}`;
   };
 
@@ -65,7 +69,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     
     doc.setTextColor(0, 0, 0); doc.setFontSize(12);
     
-    // Receipt တွင်လည်း ID အမှန်ပေါ်စေရန်
+    // Receipt တွင်လည်း ID အမှန်ပေါ်စေရန် Helper Function သုံးထားသည်
     doc.text(`Receipt ID: ${getDisplayID(payment)}`, 20, 60);
     doc.text(`Date: ${new Date(payment.payment_date).toLocaleDateString()}`, 150, 60);
     
@@ -135,8 +139,8 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
                                 <span>{new Date(p.payment_date).toLocaleDateString()}</span>
-                                {/* ✅ ID ပြသရာတွင် Helper Function ကိုသုံးသည် */}
-                                <span className="history-id">
+                                {/* ✅ ID Display Logic Here */}
+                                <span className="history-id" style={{fontWeight:'bold'}}>
                                     {getDisplayID(p)}
                                 </span>
                             </div>
@@ -196,8 +200,10 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <div className="history-info">
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
-                                {/* ✅ Payment List တွင်လည်း Helper Function သုံးသည် */}
-                                <span className="history-id">{getDisplayID(p)}</span>
+                                {/* ✅ ID Display Logic Here */}
+                                <span className="history-id" style={{fontWeight:'bold'}}>
+                                    {getDisplayID(p)}
+                                </span>
                                 <span>• {new Date(p.payment_date).toLocaleDateString()}</span>
                             </div>
                         </div>
@@ -246,7 +252,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                     </div>
                     <div className="pm-row">
                         <span className="pm-label">Transaction ID</span>
-                        {/* ✅ Modal တွင်လည်း ID အစစ်ပေါ်ရန် ပြင်ဆင်ထားသည် */}
+                        {/* ✅ ID Display Logic Here */}
                         <span className="pm-value" style={{fontFamily: 'monospace', fontWeight: 'bold'}}>
                             {getDisplayID(selectedPayment)}
                         </span>
