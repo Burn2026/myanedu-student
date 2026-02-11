@@ -113,10 +113,27 @@
   margin-bottom: 30px;
 }
 
+/* ရှိပြီးသား .stat-box ကို ဒီကုဒ်နဲ့ အစားထိုးလိုက်ပါ */
 .stat-box {
   display: flex;
-  align-items: center;
-  gap: 15px;
+  flex-direction: column; /* အပေါ်အောက် စီမယ် */
+  align-items: center;    /* ဘယ်ညာ အလယ်တည့်တည့် */
+  justify-content: center; /* အပေါ်အောက် အလယ်တည့်တည့် */
+  text-align: center;      /* စာသားများကို အလယ်ပို့မယ် */
+  gap: 10px;
+  min-height: 120px;       /* အမြင့်သတ်မှတ်ပေးလိုက်ရင် ပိုလှသွားမယ် */
+}
+
+/* Icon နဲ့ Value တွေကိုလည်း နည်းနည်းပြင်လိုက်မယ် */
+.stat-icon {
+  font-size: 32px;
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-dark);
 }
 
 .stat-icon {

@@ -18,7 +18,25 @@
 .info-label { width: 120px; color: #94a3b8; font-weight: 600; font-size: 13px; text-transform: uppercase; }
 .info-value { color: #1e293b; font-weight: 500; }
 
-@media (max-width: 768px) {
-  .profile-container { flex-direction: column; }
-  .identity-card, .details-card { width: 100%; }
+/* Mobile Responsive Fix */
+@media (max-width: 900px) {
+  .profile-container {
+    flex-direction: column; /* အပေါ်အောက် စီမယ် */
+    align-items: center;    /* အလယ်တည့်တည့် */
+    padding: 10px;          /* Padding လျှော့မယ် */
+  }
+
+  .identity-card, 
+  .details-card {
+    width: 100% !important; /* အကျယ်အပြည့်ယူမယ် */
+    max-width: 100% !important;
+    margin-bottom: 20px;
+  }
+  
+  /* Identity Card အတွင်းမှ စာသားများ အလယ်ရောက်အောင် */
+  .identity-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 }
