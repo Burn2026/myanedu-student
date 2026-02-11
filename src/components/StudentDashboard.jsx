@@ -10,16 +10,20 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   const [activeTab, setActiveTab] = useState(preSelectedBatch ? 'payment' : 'overview');
   const [selectedClass, setSelectedClass] = useState(null); 
   const [renewBatchId, setRenewBatchId] = useState(null);
+  
+  // Payment Detail Modal အတွက် State
   const [selectedPayment, setSelectedPayment] = useState(null);
+  
+  // ✅ (NEW) ဓာတ်ပုံအကြီးချဲ့ကြည့်ရန် State အသစ်
+  const [previewImage, setPreviewImage] = useState(null);
 
-  // ✅ (1) ငွေလက်ခံမည့် ဖုန်းနံပါတ် Mapping
+  // ငွေလက်ခံမည့် ဖုန်းနံပါတ် Mapping
   const accountInfo = {
     "KPay": "09123456789 (U Kyaw Kyaw)",
     "Wave": "09987654321 (Daw Mya Mya)",
     "CB": "001122334455 (U Ba Maung)"
   };
 
-  // --- DEBUGGING ---
   useEffect(() => {
     if (payments.length > 0) {
         // console.log("🔥 Payment Data:", payments);
@@ -39,7 +43,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
   };
 
-  // ✅ (2) Transaction ID Logic
+  // Transaction ID Logic
   const getDisplayID = (payment) => {
     const tID = payment.transaction_id || payment.trans_id || payment.tid;
     if (tID && String(tID) !== "null" && String(tID) !== "") {
@@ -48,12 +52,10 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return `#${payment.id}`;
   };
 
-  // ✅ (3) Image URL Helper (Double URL ပြဿနာဖြေရှင်းရန်)
+  // Image URL Helper
   const getImageUrl = (path) => {
     if (!path) return null;
-    // အကယ်၍ path က http နဲ့စရင် (Cloudinary URL ဖြစ်ရင်) ဒီအတိုင်းသုံးမယ်
     if (path.startsWith("http")) return path;
-    // မဟုတ်ရင် Backend URL ခံပြီးသုံးမယ်
     return `https://myanedu-backend.onrender.com/${path}`;
   };
 
@@ -77,7 +79,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     doc.setFontSize(14); doc.text("Official Payment Receipt", 105, 30, null, null, "center");
     
     doc.setTextColor(0, 0, 0); doc.setFontSize(12);
-    
     doc.text(`Receipt ID: ${getDisplayID(payment)}`, 20, 60);
     doc.text(`Date: ${new Date(payment.payment_date).toLocaleDateString()}`, 150, 60);
     
@@ -237,7 +238,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
          ))}
       </div>
 
-      {/* PAYMENT DETAIL MODAL */}
+      {/* --- PAYMENT DETAIL MODAL --- */}
       {selectedPayment && (
         <div className="payment-modal-overlay" onClick={() => setSelectedPayment(null)}>
             <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
@@ -264,7 +265,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         </span>
                     </div>
 
-                    {/* ✅ "Transfer To" Phone Number Display */}
                     <div className="pm-row">
                         <span className="pm-label">Transfer To</span>
                         <span className="pm-value">
@@ -277,21 +277,23 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <span className="pm-value">{new Date(selectedPayment.payment_date).toLocaleString()}</span>
                     </div>
 
-                    {/* ✅ Corrected Image URL Logic */}
+                    {/* ✅ Receipt Image Display */}
                     {selectedPayment.receipt_image ? (
                         <div className="pm-receipt-box">
-                            <p style={{fontSize:'12px', marginBottom:'8px', color:'#64748b'}}>Uploaded Screenshot:</p>
-                            <a href={getImageUrl(selectedPayment.receipt_image)} target="_blank" rel="noopener noreferrer">
-                                <img 
-                                    src={getImageUrl(selectedPayment.receipt_image)} 
-                                    alt="Receipt" 
-                                    className="pm-receipt-img"
-                                    style={{border: '1px solid #e2e8f0', cursor: 'zoom-in', maxWidth: '100%'}}
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                    }}
-                                />
-                            </a>
+                            <p style={{fontSize:'12px', marginBottom:'8px', color:'#64748b'}}>Uploaded Screenshot (Click to zoom):</p>
+                            
+                            {/* 🔥 MODIFIED: Remove <a> tag, use onClick to open preview */}
+                            <img 
+                                src={getImageUrl(selectedPayment.receipt_image)} 
+                                alt="Receipt" 
+                                className="pm-receipt-img"
+                                style={{border: '1px solid #e2e8f0', cursor: 'zoom-in', maxWidth: '100%'}}
+                                // ဓာတ်ပုံနှိပ်လိုက်ရင် State ထဲထည့်မယ်
+                                onClick={() => setPreviewImage(getImageUrl(selectedPayment.receipt_image))}
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                }}
+                            />
                         </div>
                     ) : (
                         <div className="pm-receipt-box" style={{color: '#94a3b8', fontStyle: 'italic'}}>
@@ -308,6 +310,41 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                     )}
                 </div>
             </div>
+        </div>
+      )}
+
+      {/* ✅ (NEW) FULL SCREEN IMAGE PREVIEW MODAL (LIGHTBOX) */}
+      {previewImage && (
+        <div 
+            style={{
+                position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
+                backgroundColor: 'rgba(0, 0, 0, 0.9)', zIndex: 3000, 
+                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                animation: 'fadeIn 0.2s ease-out'
+            }}
+            onClick={() => setPreviewImage(null)} // Click background to close
+        >
+            <button 
+                onClick={() => setPreviewImage(null)}
+                style={{
+                    position: 'absolute', top: '20px', right: '20px', 
+                    background: 'white', border: 'none', borderRadius: '50%', 
+                    width: '40px', height: '40px', fontSize: '24px', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+            >
+                ×
+            </button>
+            <img 
+                src={previewImage} 
+                alt="Full Preview" 
+                style={{
+                    maxWidth: '90%', maxHeight: '90%', 
+                    objectFit: 'contain', borderRadius: '8px',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+                }}
+                onClick={(e) => e.stopPropagation()} // Click image won't close
+            />
         </div>
       )}
 
