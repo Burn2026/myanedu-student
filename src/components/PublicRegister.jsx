@@ -1,5 +1,6 @@
 import { useState } from "react";
 import LoadingSpinner from './LoadingSpinner';
+import './PublicRegister.css';
 
 function PublicRegister({ onRegisterSuccess, onCancel }) {
   const [formData, setFormData] = useState({

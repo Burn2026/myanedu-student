@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DiscussionSection from './DiscussionSection';
+import './Classroom.css';
 
 function Classroom({ batchId, courseName, onBack, studentName }) {
   const [lessons, setLessons] = useState([]);
@@ -18,39 +19,7 @@ function Classroom({ batchId, courseName, onBack, studentName }) {
   }, [batchId]);
 
   return (
-    <>
-      <style>{`
-          .classroom-container {
-            display: flex; height: calc(100vh - 100px); /* Adjust based on navbar */
-            background: white; border-radius: 16px; overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
-          }
-          .video-section { flex: 1; padding: 25px; overflow-y: auto; background: #f8fafc; }
-          .playlist-sidebar {
-            width: 320px; border-left: 1px solid #e2e8f0; background: white;
-            overflow-y: auto; display: flex; flex-direction: column;
-          }
-          .video-wrapper {
-            width: 100%; aspect-ratio: 16 / 9; background: black;
-            border-radius: 12px; overflow: hidden; margin-bottom: 20px;
-          }
-          .video-player { width: 100%; height: 100%; object-fit: contain; }
-          
-          .lesson-item {
-            padding: 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer;
-            display: flex; gap: 10px; align-items: start; transition: 0.2s;
-          }
-          .lesson-item:hover { background: #f8fafc; }
-          .lesson-item.active { background: #eff6ff; border-left: 4px solid #2563eb; }
-
-          @media (max-width: 900px) {
-            .classroom-container { flex-direction: column; height: auto; min-height: 80vh; }
-            .playlist-sidebar { width: 100%; height: 350px; border-left: none; border-top: 1px solid #e2e8f0; }
-            .video-section { padding: 15px; }
-          }
-      `}</style>
-
-      <div className="classroom-container">
+    <>  <div className="classroom-container">
         {/* Left: Video */}
         <div className="video-section">
              <button onClick={onBack} style={{marginBottom: '15px', background: 'none', border: '1px solid #cbd5e1', padding: '5px 10px', borderRadius: '6px', cursor: 'pointer'}}>← Back to Classes</button>

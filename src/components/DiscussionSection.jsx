@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './DiscussionSection.css';
 
 function DiscussionSection({ lessonId, studentName }) {
   const [comments, setComments] = useState([]);

@@ -1,0 +1,29 @@
+/* src/components/DiscussionSection.css */
+.discussion-container {
+  margin-top: 30px; background: white; padding: 20px;
+  border-radius: 12px; border: 1px solid #e2e8f0;
+}
+
+.messages-list {
+  max-height: 400px; overflow-y: auto; margin-bottom: 20px;
+  display: flex; flex-direction: column; gap: 15px;
+}
+
+.message-bubble {
+  max-width: 80%; padding: 10px 15px; border-radius: 12px;
+  font-size: 14px; line-height: 1.5; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.msg-student {
+  align-self: flex-end; background: #2563eb; color: white;
+  border-top-right-radius: 0;
+}
+
+.msg-admin {
+  align-self: flex-start; background: #eff6ff; color: #1e293b;
+  border-top-left-radius: 0;
+}
+
+.input-form { display: flex; gap: 10px; }
+.chat-input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; }
+.chat-btn { background: #2563eb; color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './StudentCard.css';
 
 function StudentCard({ student, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);

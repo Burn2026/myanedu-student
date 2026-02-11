@@ -1,5 +1,5 @@
 import React from 'react';
-import '../App.css'; // Success Icon CSS သုံးရန်
+import './LoadingSpinner.css';
 
 // Props လက်ခံအောင် ပြင်လိုက်သည်
 function LoadingSpinner({ message = "လုပ်ဆောင်နေပါသည်...", isSuccess = false }) {

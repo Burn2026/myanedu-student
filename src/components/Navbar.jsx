@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './Navbar.css';
 
 function Navbar({ student, onLogout, onNavigate }) {
   const [notifications, setNotifications] = useState([]);

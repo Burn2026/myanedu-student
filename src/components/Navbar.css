@@ -1,0 +1,37 @@
+/* src/components/Navbar.css */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 70px; background: white; z-index: 2000;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.nav-container {
+  width: 100%; max-width: 1200px; padding: 0 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.nav-logo { cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.nav-logo-text { font-weight: 800; fontSize: 18px; color: #2563eb; }
+
+.desktop-menu { display: flex; align-items: center; gap: 20px; }
+.mobile-hamburger { display: none; font-size: 24px; cursor: pointer; }
+
+/* Mobile Dropdown */
+.mobile-dropdown {
+  position: fixed; top: 70px; left: 0; right: 0;
+  background: white; border-bottom: 1px solid #e2e8f0;
+  padding: 20px; z-index: 1999; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+
+.nav-btn-logout {
+  background: #fee2e2; color: #ef4444; border: none;
+  padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .desktop-menu { display: none; }
+  .mobile-hamburger { display: block; }
+  .navbar { height: 60px; }
+  .mobile-dropdown { top: 60px; }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import './ClassEnrollment.css';
 
 function ClassEnrollment({ student, onEnrollSuccess }) {
   const [batches, setBatches] = useState([]);

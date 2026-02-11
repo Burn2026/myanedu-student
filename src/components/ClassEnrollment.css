@@ -1,0 +1,17 @@
+/* src/components/ClassEnrollment.css */
+.enrollment-card {
+  background: white; padding: 20px; border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 5px solid #d97706;
+  margin-top: 20px;
+}
+
+.enroll-form { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+
+.enroll-select {
+  flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #ccc; min-width: 200px;
+}
+
+.enroll-btn {
+  padding: 12px 20px; background: #d97706; color: white;
+  border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
+}
