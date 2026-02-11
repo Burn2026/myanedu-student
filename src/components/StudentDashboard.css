@@ -17,7 +17,7 @@
 
 .dashboard-root {
   display: flex;
-  min-height: calc(100vh - var(--header-h)); /* Header အောက်က နေရာအပြည့်ယူမယ် */
+  min-height: calc(100vh - var(--header-h));
   background-color: var(--bg-light);
   width: 100%;
   position: relative;
@@ -30,8 +30,8 @@
   width: var(--sidebar-w);
   background: white;
   border-right: 1px solid #e2e8f0;
-  position: fixed; /* ဘေးမှာ ကပ်နေမယ် */
-  top: var(--header-h); /* Navbar အောက်မှာနေမယ် */
+  position: fixed;
+  top: var(--header-h);
   bottom: 0;
   left: 0;
   padding: 20px;
@@ -68,21 +68,22 @@
 .nav-icon { font-size: 18px; }
 
 /* =========================================
-   MAIN CONTENT AREA (DESKTOP FIX)
+   MAIN CONTENT AREA (CENTERED FIX)
    ========================================= */
 .main-content {
-  /* ✅ Sidebar အကျယ်လောက် ဘယ်ဘက်ကို ချန်ထားမယ် */
   margin-left: var(--sidebar-w); 
-  
-  /* ✅ Padding များများပေးပြီး စာသားတွေ မကပ်အောင်လုပ်မယ် */
-  padding: 30px 40px; 
-  
   width: calc(100% - var(--sidebar-w));
+  padding: 40px; /* Padding တိုးပေးထားသည် */
   box-sizing: border-box;
   animation: fadeIn 0.3s ease-in-out;
-  
-  /* Content တွေ Header နဲ့ အရမ်းမကပ်အောင် */
-  margin-top: 0; 
+}
+
+/* ✅ UI အလယ်ပို့ရန် အရေးကြီးဆုံးအပိုင်း */
+/* .main-content အောက်က ပထမဆုံး div (Tabs) များကို အလယ်ပို့မည် */
+.main-content > div {
+  max-width: 1100px; /* အကျယ်ဆုံး Size သတ်မှတ် (လိုသလို ပြင်နိုင်သည်) */
+  margin: 0 auto;    /* ဘယ်ညာ အလယ်တည့်တည့်ပို့ */
+  width: 100%;
 }
 
 .welcome-title {
@@ -120,10 +121,9 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-/* Stats Grid Fix */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Auto fit for desktop */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* ကဒ်အကျယ် ချိန်ညှိ */
   gap: 25px;
   margin-bottom: 30px;
 }
@@ -143,15 +143,14 @@
 .stat-value.money { color: #16a34a; }
 .stat-label { color: var(--text-gray); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
-/* Course Grid */
 .course-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 25px;
 }
 
 /* =========================================
-   HISTORY LIST (PAYMENTS)
+   HISTORY LIST
    ========================================= */
 .history-list {
   display: flex;
@@ -207,7 +206,7 @@
 .action-btn.revoked { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
 
 /* =========================================
-   MODAL (POPUP) STYLES
+   MODAL (POPUP)
    ========================================= */
 .payment-modal-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -243,29 +242,31 @@
 .btn-download:hover { background: black; }
 
 /* =========================================
-   ANIMATIONS
+   ANIMATIONS & MOBILE FIX
    ========================================= */
 @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* =========================================
-   MOBILE RESPONSIVENESS FIX (အရေးကြီးဆုံးအပိုင်း)
-   ========================================= */
 .mobile-nav { display: none; }
 
 @media (max-width: 900px) {
-  .sidebar { display: none; } /* Mobile မှာ Sidebar ဖျောက်မယ် */
+  .sidebar { display: none; }
   
   .main-content {
-    margin-left: 0 !important; /* Mobile မှာ ဘယ်ဘက် Margin မလိုပါ */
-    width: 100% !important;    /* အကျယ်အပြည့် */
-    padding: 15px;             /* Padding လျှော့မယ် */
-    padding-bottom: 90px;      /* Bottom Nav အတွက် နေရာချန်မယ် */
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 20px !important; /* Mobile အတွက် Padding လျှော့ပါ */
+    padding-bottom: 90px !important;
     margin-top: 0;
   }
   
+  /* Mobile မှာ အလယ်ပို့တာကို ဖျက်ပြီး အပြည့်ပြန်ယူမယ် */
+  .main-content > div {
+    max-width: 100%;
+  }
+  
   .stats-grid, .course-grid {
-    grid-template-columns: 1fr; /* ကော်လံ တစ်ခုတည်းပြမယ် */
+    grid-template-columns: 1fr;
   }
   
   .mobile-nav {
