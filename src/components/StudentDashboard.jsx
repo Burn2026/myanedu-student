@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './StudentDashboard.css'; 
+import './StudentDashboard.css';
 import StudentCard from './StudentCard';
 import OnlinePayment from './OnlinePayment';
 import ExamList from './ExamList';
@@ -12,15 +12,12 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   const [renewBatchId, setRenewBatchId] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
-  // --- DEBUGGING ---
-  // Browser Console တွင် Data များကို စစ်ဆေးရန် (F12 နှိပ်ပြီး Console တွင်ကြည့်ပါ)
-  useEffect(() => {
-    if (payments.length > 0) {
-        console.log("🔥 Payment Data Received:", payments);
-        console.log("🔑 Available Keys:", Object.keys(payments[0])); 
-        // ဒီအပေါ်က line မှာ 'transaction_id' မပါရင် Backend မှာ ပြင်ရပါလိမ့်မယ်
-    }
-  }, [payments]);
+  // 🔒 SECURITY FIX: Production တွင် Console Log မပြအောင် ဖယ်ရှားလိုက်ပါ သို့မဟုတ် Comment ပိတ်ထားပါ
+  // useEffect(() => {
+  //   if (process.env.NODE_ENV === 'development') {
+  //       console.log("Payment Data:", payments);
+  //   }
+  // }, [payments]);
 
   // Stats Logic
   const activePayments = payments.filter(p => p.status === 'verified');
@@ -35,20 +32,19 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
   };
 
-  // ✅ ID ပြဿနာဖြေရှင်းခြင်း (Transaction ID မရှိရင် System ID ပြမည်)
+  // Helper to safely get an ID to display
   const getDisplayID = (payment) => {
-    // 1. Backend မှ လာနိုင်သော နာမည်ကွဲများကို စုံစမ်းခြင်း
+    // 🔒 SECURITY: Ensure output is always a string to prevent injection
     const tID = payment.transaction_id || payment.trans_id || payment.tid || payment.receipt_no || payment.ref_no;
-
-    // 2. Data ရှိပြီး null မဟုတ်လျှင် ပြမည်
-    if (tID && tID !== "null" && tID !== "") {
-        return tID;
+    
+    if (tID && String(tID) !== "null" && String(tID) !== "") {
+        return String(tID); 
     }
-    // 3. မရှိပါက System ID (#1, #2...) ကိုပဲ ပြမည်
     return `#${payment.id}`;
   };
 
   const handleEnterClass = (batchId, courseName, expireDate, status) => {
+    // 🔒 NOTE: Backend API must also verify this, not just frontend
     if (status !== 'verified') return alert("Access Denied: Payment pending or rejected.");
     if (getDaysRemaining(expireDate) <= 0) return alert("Subscription Expired! Please renew.");
     setSelectedClass({ id: batchId, name: courseName });
@@ -69,7 +65,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     
     doc.setTextColor(0, 0, 0); doc.setFontSize(12);
     
-    // Receipt တွင်လည်း ID အမှန်ပေါ်စေရန် Helper Function သုံးထားသည်
+    // Receipt ID Display
     doc.text(`Receipt ID: ${getDisplayID(payment)}`, 20, 60);
     doc.text(`Date: ${new Date(payment.payment_date).toLocaleDateString()}`, 150, 60);
     
@@ -139,7 +135,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
                                 <span>{new Date(p.payment_date).toLocaleDateString()}</span>
-                                {/* ✅ ID Display Logic Here */}
                                 <span className="history-id" style={{fontWeight:'bold'}}>
                                     {getDisplayID(p)}
                                 </span>
@@ -200,7 +195,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <div className="history-info">
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
-                                {/* ✅ ID Display Logic Here */}
                                 <span className="history-id" style={{fontWeight:'bold'}}>
                                     {getDisplayID(p)}
                                 </span>
@@ -231,7 +225,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
          ))}
       </div>
 
-      {/* PAYMENT DETAIL MODAL */}
+      {/* PAYMENT MODAL */}
       {selectedPayment && (
         <div className="payment-modal-overlay" onClick={() => setSelectedPayment(null)}>
             <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
@@ -252,7 +246,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                     </div>
                     <div className="pm-row">
                         <span className="pm-label">Transaction ID</span>
-                        {/* ✅ ID Display Logic Here */}
                         <span className="pm-value" style={{fontFamily: 'monospace', fontWeight: 'bold'}}>
                             {getDisplayID(selectedPayment)}
                         </span>
@@ -273,8 +266,10 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                                 src={`https://myanedu-backend.onrender.com/${selectedPayment.receipt_image}`} 
                                 alt="Receipt" 
                                 className="pm-receipt-img"
+                                // 🔒 SECURITY FIX: Do not use innerHTML here. Just hide the broken image.
                                 onError={(e) => {
                                     e.target.style.display = 'none';
+                                    // Removed insecure innerHTML injection
                                 }}
                             />
                         </div>
