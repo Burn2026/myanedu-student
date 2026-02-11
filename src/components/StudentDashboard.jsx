@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './StudentDashboard.css'; // ✅ CSS Import (Layout မှန်ကန်စေရန် အရေးကြီးသည်)
+import './StudentDashboard.css'; // CSS Import
 import StudentCard from './StudentCard';
 import OnlinePayment from './OnlinePayment';
 import ExamList from './ExamList';
@@ -16,7 +16,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   const activePayments = payments.filter(p => p.status === 'verified');
   const totalPaid = activePayments.reduce((sum, p) => sum + Number(p.amount), 0);
   const totalCourses = new Set(activePayments.map(p => p.course_name)).size;
-  const latestExam = exams.length > 0 ? exams[0].grade : '-';
   const allClasses = payments; 
 
   // Helpers
@@ -24,6 +23,13 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     if (!expireDate) return 0;
     const diff = new Date(expireDate) - new Date();
     return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
+  };
+
+  // Helper to safely get an ID to display
+  // Transaction ID မရှိလျှင် System ID (ပထမ ၈ လုံး) ကို ပြမည်
+  const getDisplayID = (payment) => {
+    if (payment.transaction_id) return `#${payment.transaction_id}`;
+    return `#${payment.id.toString().substring(0, 8)}`;
   };
 
   const handleEnterClass = (batchId, courseName, expireDate, status) => {
@@ -46,9 +52,8 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     doc.setFontSize(14); doc.text("Official Payment Receipt", 105, 30, null, null, "center");
     
     doc.setTextColor(0, 0, 0); doc.setFontSize(12);
-    // Use Transaction ID first, fallback to DB ID
-    const receiptID = payment.transaction_id || payment.id.substring(0, 8);
-    doc.text(`Receipt ID: #${receiptID}`, 20, 60);
+    // Use Helper
+    doc.text(`Receipt ID: ${getDisplayID(payment)}`, 20, 60);
     doc.text(`Date: ${new Date(payment.payment_date).toLocaleDateString()}`, 150, 60);
     
     doc.setDrawColor(200); doc.rect(20, 70, 170, 25);
@@ -75,7 +80,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   return (
     <div className="dashboard-root">
       
-      {/* DESKTOP SIDEBAR */}
+      {/* SIDEBAR */}
       <div className="sidebar">
          {[
            {id: 'overview', icon: '📊', label: 'Overview'},
@@ -90,7 +95,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
          ))}
       </div>
 
-      {/* MAIN CONTENT AREA */}
+      {/* MAIN CONTENT */}
       <div className="main-content">
         
         {/* OVERVIEW TAB */}
@@ -117,9 +122,8 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
                                 <span>{new Date(p.payment_date).toLocaleDateString()}</span>
-                                <span className="history-id">
-                                    {p.transaction_id ? `#${p.transaction_id}` : 'Processing...'}
-                                </span>
+                                {/* ✅ Fix 1: Use getDisplayID helper */}
+                                <span className="history-id">{getDisplayID(p)}</span>
                             </div>
                         </div>
                         <span className={`badge ${p.status}`}>{p.status}</span>
@@ -177,10 +181,8 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <div className="history-info">
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
-                                {/* Display Transaction ID here */}
-                                <span className="history-id">
-                                    {p.transaction_id ? `#${p.transaction_id}` : 'Processing...'}
-                                </span>
+                                {/* ✅ Fix 2: Use getDisplayID helper */}
+                                <span className="history-id">{getDisplayID(p)}</span>
                                 <span>• {new Date(p.payment_date).toLocaleDateString()}</span>
                             </div>
                         </div>
@@ -199,7 +201,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
         {activeTab === 'profile' && <div style={{maxWidth:'600px', margin:'0 auto'}}><h2 className="welcome-title">My Profile</h2><StudentCard student={student} onUpdate={refreshData} /></div>}
       </div>
 
-      {/* MOBILE BOTTOM NAVIGATION */}
+      {/* MOBILE NAV */}
       <div className="mobile-nav">
          {[{id: 'overview', icon: '📊', label: 'Overview'}, {id: 'classroom', icon: '📚', label: 'Classes'}, {id: 'payment', icon: '💳', label: 'Pay'}, {id: 'exams', icon: '📝', label: 'Exams'}, {id: 'profile', icon: '👤', label: 'Profile'}].map(item => (
            <div key={item.id} className={`mobile-item ${activeTab === item.id ? 'active' : ''}`} onClick={() => setActiveTab(item.id)}>
@@ -208,7 +210,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
          ))}
       </div>
 
-      {/* PAYMENT DETAIL MODAL */}
+      {/* PAYMENT MODAL */}
       {selectedPayment && (
         <div className="payment-modal-overlay" onClick={() => setSelectedPayment(null)}>
             <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
@@ -229,9 +231,9 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                     </div>
                     <div className="pm-row">
                         <span className="pm-label">Transaction ID</span>
-                        {/* Display real Transaction ID or fallback text */}
+                        {/* ✅ Fix 3: Show ID in Modal */}
                         <span className="pm-value" style={{fontFamily: 'monospace', fontWeight: 'bold'}}>
-                            {selectedPayment.transaction_id || "Processing..."}
+                            {getDisplayID(selectedPayment)}
                         </span>
                     </div>
                     <div className="pm-row">
@@ -252,7 +254,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                                 className="pm-receipt-img"
                                 onError={(e) => {
                                     e.target.style.display = 'none';
-                                    e.target.parentNode.innerHTML += '<span style="color:red; font-size:12px">Image Error</span>';
                                 }}
                             />
                         </div>
