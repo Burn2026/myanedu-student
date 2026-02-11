@@ -22,49 +22,64 @@ function App() {
   const [targetBatchId, setTargetBatchId] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // --- (Updated) Page Load ဖြစ်တာနဲ့ Login စစ်ဆေးခြင်း ---
+  // --- Page Load ဖြစ်တာနဲ့ Login စစ်ဆေးခြင်း ---
   useEffect(() => {
-    // အရင်က ဖုန်းနံပါတ်တစ်ခုတည်း စစ်ရာမှ၊ အခု User Object ရှိမရှိပါ စစ်ပါမယ်
-    const savedPhone = localStorage.getItem('studentPhone');
-    const savedAuth = localStorage.getItem('studentAuth');
+    try {
+        const savedPhone = localStorage.getItem('studentPhone');
+        const savedAuth = localStorage.getItem('studentAuth');
 
-    if (savedPhone) {
-        setPhone(savedPhone);
-        
-        // LocalStorage မှာ Data အပြည့်အစုံရှိရင် State ထဲ ချက်ချင်းထည့်မယ် (Loading မကြာအောင်)
-        if(savedAuth) {
-            setStudent(JSON.parse(savedAuth));
+        if (savedPhone) {
+            setPhone(savedPhone);
+            
+            // Safety Check: JSON parse error မတက်အောင် ကာကွယ်ခြင်း
+            if(savedAuth) {
+                try {
+                    const parsedAuth = JSON.parse(savedAuth);
+                    if (parsedAuth && parsedAuth.id) {
+                        setStudent(parsedAuth);
+                    }
+                } catch (e) {
+                    console.error("Auth Data Corrupted:", e);
+                    localStorage.removeItem('studentAuth'); // Data မှားနေရင် ဖျက်မယ်
+                }
+            }
+            // Server မှ Data ပြန်ဆွဲမည်
+            fetchAllData(savedPhone); 
         }
-
-        fetchAllData(savedPhone); // Server ကနေ နောက်ဆုံး Data ပြန်ဆွဲမယ်
+    } catch (err) {
+        console.error("App Init Error:", err);
     }
   }, []);
 
   // Data များကို ဆွဲယူမည့် Function
   const fetchAllData = async (phoneNum) => {
+      if(!phoneNum) return;
       setLoading(true); 
       try {
         const studentRes = await fetch(`https://myanedu-backend.onrender.com/students/search?phone=${phoneNum}`);
         if (!studentRes.ok) {
-          // Data မတွေ့ရင် LocalStorage ပါ ရှင်းပစ်မယ် (Logout သဘောမျိုး)
           handleLogout();
           setError("Session Expired. Please login again.");
           return;
         }
         const studentData = await studentRes.json();
-        setStudent(studentData); 
         
-        // (New) နောက်ဆုံးရလာတဲ့ Data ကို LocalStorage မှာ Update လုပ်မယ်
-        localStorage.setItem('studentAuth', JSON.stringify(studentData));
+        // Data အမှန်ရမှ State ထဲထည့်မည်
+        if (studentData && studentData.id) {
+            setStudent(studentData); 
+            localStorage.setItem('studentAuth', JSON.stringify(studentData));
 
-        // ကျန် Data များ ဆက်ဆွဲမယ်
-        const paymentRes = await fetch(`https://myanedu-backend.onrender.com/students/payments?phone=${phoneNum}`);
-        const paymentData = await paymentRes.json();
-        setPayments(paymentData);
+            // ကျန် Data များ ဆက်ဆွဲမယ်
+            const paymentRes = await fetch(`https://myanedu-backend.onrender.com/students/payments?phone=${phoneNum}`);
+            const paymentData = await paymentRes.json();
+            setPayments(Array.isArray(paymentData) ? paymentData : []); // Array မဟုတ်ရင် Empty Array ထားမယ်
 
-        const examRes = await fetch(`https://myanedu-backend.onrender.com/students/exams?phone=${phoneNum}`);
-        const examData = await examRes.json();
-        setExams(examData);
+            const examRes = await fetch(`https://myanedu-backend.onrender.com/students/exams?phone=${phoneNum}`);
+            const examData = await examRes.json();
+            setExams(Array.isArray(examData) ? examData : []);
+        } else {
+            throw new Error("Invalid Student Data");
+        }
 
       } catch (err) {
         console.error(err);
@@ -74,16 +89,13 @@ function App() {
       }
   };
 
-  // Login အောင်မြင်ပါက (SearchForm မှ ခေါ်မည်)
   const handleLoginSuccess = (loggedInPhone) => {
-    // ⚠️ Note: SearchForm ကနေ phone ပဲပါလာရင် fetchAllData ကနေ studentAuth ကို ဖြည့်ပေးပါလိမ့်မယ်
     localStorage.setItem('studentPhone', loggedInPhone);
     setPhone(loggedInPhone);
     setError(""); 
     fetchAllData(loggedInPhone);
   };
 
-  // Register အောင်မြင်ပါက (PublicRegister မှ ခေါ်မည်)
   const handleRegisterSuccess = (registeredPhone) => {
     localStorage.setItem('studentPhone', registeredPhone);
     setView('search');
@@ -91,24 +103,21 @@ function App() {
     fetchAllData(registeredPhone);
   };
 
-  // Logout လုပ်ပါက
   const handleLogout = () => {
-    // (Updated) Browser ထဲက Data အကုန်ဖျက်မည်
     localStorage.removeItem('studentPhone');
-    localStorage.removeItem('studentAuth'); // ဒါလေး အရေးကြီးပါတယ်
-
+    localStorage.removeItem('studentAuth');
     setStudent(null);
     setPhone("");
     setPayments([]);
     setExams([]);
     setView('search');
-    window.location.reload(); // State ရှင်းဖို့ Refresh လုပ်လိုက်တာ ပိုစိတ်ချရပါတယ်
+    window.location.reload(); 
   };
 
   const handleNavigate = (section) => {
     if (section === 'home') {
        window.scrollTo({ top: 0, behavior: 'smooth' });
-       if(!student) setView('search'); // Home နှိပ်ရင် Search View ပြန်ပြမယ်
+       if(!student) setView('search'); 
     } else {
        const element = document.getElementById(section);
        if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -140,7 +149,6 @@ function App() {
 
       <div className="container" style={{ maxWidth: '1200px', marginTop: '80px', flex: 1, padding: '20px' }}>
         
-        {/* Header Title (Login မဝင်ရသေးမှ ပြမည်) */}
         {!student && (
           <div style={{ textAlign: 'center', marginBottom: '40px' }} id="home">
             <h1 className="responsive-title" style={{ color: '#2563eb', marginBottom: '10px' }}>Myanmar Education Portal</h1>
@@ -150,7 +158,6 @@ function App() {
           </div>
         )}
 
-        {/* View 1: Register Form */}
         {view === 'register' && (
             <PublicRegister 
               onRegisterSuccess={handleRegisterSuccess} 
@@ -158,7 +165,6 @@ function App() {
             />
         )}
 
-        {/* View 2: Search/Login & Public Info */}
         {view === 'search' && !student && (
             <div style={{ marginBottom: '40px' }}>
                 <SearchForm onLoginSuccess={handleLoginSuccess} />
@@ -185,8 +191,8 @@ function App() {
             </div>
         )}
 
-        {/* View 3: Student Dashboard (Login ဝင်ပြီး) */}
-        {student && (
+        {/* Student Dashboard ကို student ရှိမှသာ ပြမည် */}
+        {student && student.id && (
             <StudentDashboard 
                 student={student}
                 payments={payments}
@@ -197,7 +203,6 @@ function App() {
             />
         )}
 
-        {/* Auth Modal */}
         {showAuthModal && (
           <div className="modal-overlay">
             <div className="auth-modal-box">
