@@ -41,22 +41,14 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   return (
     <div className="dashboard-root">
       
-      {/* --- PREMIUM RESPONSIVE CSS --- */}
       <style>{`
-        /* Dashboard Layout Variables */
-        :root {
-          --sidebar-w: 260px;
-          --header-h: 70px;
-          --bottom-nav-h: 65px;
-        }
-
         /* 1. Desktop Sidebar (Fixed Left) */
         .sidebar {
-          width: var(--sidebar-w);
+          width: 260px;
           background: white;
           border-right: 1px solid #e2e8f0;
           position: fixed;
-          top: var(--header-h); /* Navbar အောက် */
+          top: 70px; /* Header အောက် */
           bottom: 0;
           left: 0;
           padding: 20px;
@@ -64,39 +56,16 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
           overflow-y: auto;
         }
 
-        /* 2. Main Content (Pushed by Sidebar) */
+        /* 2. Main Content (Desktop) */
         .main-content {
-          margin-left: var(--sidebar-w);
+          margin-left: 260px; /* Sidebar ရှိလို့ တွန်းထားသည် */
           padding: 30px;
-          width: calc(100% - var(--sidebar-w));
-          min-height: calc(100vh - var(--header-h));
+          width: calc(100% - 260px);
+          min-height: calc(100vh - 70px);
+          box-sizing: border-box; /* Padding ကြောင့် width မကျော်အောင် */
         }
 
-        /* 3. Mobile Adjustments */
-        .mobile-nav { display: none; }
-
-        @media (max-width: 900px) {
-          .sidebar { display: none; } /* Sidebar Hide */
-          .main-content { 
-            margin-left: 0; 
-            width: 100%; 
-            padding: 20px; 
-            padding-bottom: 90px; /* For Bottom Nav */
-          }
-          
-          .mobile-nav {
-            display: flex;
-            position: fixed; bottom: 0; left: 0; right: 0;
-            height: var(--bottom-nav-h);
-            background: white; border-top: 1px solid #e2e8f0;
-            justify-content: space-around; align-items: center;
-            z-index: 1001;
-            padding-bottom: env(safe-area-inset-bottom);
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
-          }
-        }
-
-        /* Components Styles */
+        /* 3. Components Styles */
         .nav-item {
           display: flex; align-items: center; gap: 12px;
           padding: 12px 16px; border-radius: 10px;
@@ -113,15 +82,43 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
 
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        
-        .mobile-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #94a3b8; font-weight: 500; }
-        .mobile-item.active { color: #2563eb; font-weight: 700; }
-        .mobile-icon { font-size: 20px; margin-bottom: 2px; }
-
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .badge.verified { background: #dcfce7; color: #15803d; }
-        .badge.rejected { background: #fee2e2; color: #b91c1c; }
-        .badge.pending { background: #fef9c3; color: #a16207; }
+        
+        .mobile-nav { display: none; }
+
+        /* =========================================
+           MOBILE RESPONSIVENESS FIX (900px အောက်)
+           ========================================= */
+        @media (max-width: 900px) {
+          /* Sidebar ကို ဖျောက်မည် */
+          .sidebar { display: none; } 
+          
+          /* Main Content ကို ဘယ်ဘက်သို့ ပြန်ကပ်မည် */
+          .main-content { 
+            margin-left: 0 !important; 
+            width: 100% !important; 
+            padding: 15px; 
+            padding-bottom: 90px; /* အောက်ခြေ Menu အတွက် နေရာချန် */
+          }
+          
+          .stats-grid, .course-grid { grid-template-columns: 1fr; } /* Card တွေကို တစ်တန်းတည်းပြမည် */
+
+          /* Mobile Bottom Nav ကို ပြမည် */
+          .mobile-nav {
+            display: flex;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 65px;
+            background: white; border-top: 1px solid #e2e8f0;
+            justify-content: space-around; align-items: center;
+            z-index: 1001;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+          }
+          
+          .mobile-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #94a3b8; font-weight: 500; }
+          .mobile-item.active { color: #2563eb; font-weight: 700; }
+          .mobile-icon { font-size: 20px; margin-bottom: 2px; }
+        }
       `}</style>
 
       {/* DESKTOP SIDEBAR */}
@@ -160,7 +157,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
             </div>
 
             <h3 style={{fontSize:'18px', fontWeight:'700', marginBottom:'15px'}}>Recent Activity</h3>
-            <div className="table-wrapper premium-card" style={{padding: 0, overflow: 'hidden'}}>
+            <div className="premium-card" style={{padding:0, overflow:'hidden'}}>
                 <div className="table-scroll">
                   <table>
                       <thead><tr><th>Date</th><th>Course</th><th>Amount</th><th>Status</th></tr></thead>
@@ -168,7 +165,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                           {payments.slice(0, 5).map(p => (
                               <tr key={p.id}>
                                   <td>{new Date(p.payment_date).toLocaleDateString()}</td>
-                                  <td><div style={{fontWeight:'600'}}>{p.course_name}</div><div style={{fontSize:'12px', color:'#64748b'}}>{p.batch_name}</div></td>
+                                  <td><div style={{fontWeight:'600'}}>{p.course_name}</div><div style={{fontSize:'11px', color:'#64748b'}}>{p.batch_name}</div></td>
                                   <td>{Number(p.amount).toLocaleString()} Ks</td>
                                   <td><span className={`badge ${p.status}`}>{p.status}</span></td>
                               </tr>
