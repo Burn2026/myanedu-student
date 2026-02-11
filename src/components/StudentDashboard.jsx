@@ -12,7 +12,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   const [renewBatchId, setRenewBatchId] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
-  // ✅ (1) ငွေလက်ခံမည့် ဖုန်းနံပါတ် Mapping (OnlinePayment.jsx နှင့် တူညီရမည်)
+  // ✅ (1) ငွေလက်ခံမည့် ဖုန်းနံပါတ် Mapping
   const accountInfo = {
     "KPay": "09123456789 (U Kyaw Kyaw)",
     "Wave": "09987654321 (Daw Mya Mya)",
@@ -22,7 +22,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   // --- DEBUGGING ---
   useEffect(() => {
     if (payments.length > 0) {
-        // Console တွင် Data စစ်ဆေးရန် (Production တွင် ပိတ်ထားနိုင်သည်)
         // console.log("🔥 Payment Data:", payments);
     }
   }, [payments]);
@@ -40,17 +39,22 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
   };
 
-  // ✅ (2) Transaction ID မှန်ကန်စွာပြသခြင်း Logic
+  // ✅ (2) Transaction ID Logic
   const getDisplayID = (payment) => {
-    // Backend မှ လာနိုင်သော နာမည်ကွဲများ
     const tID = payment.transaction_id || payment.trans_id || payment.tid;
-
-    // Transaction ID အစစ်ရှိလျှင် ပြမည်
     if (tID && String(tID) !== "null" && String(tID) !== "") {
         return String(tID);
     }
-    // မရှိလျှင် System ID (#123) ပြမည်
     return `#${payment.id}`;
+  };
+
+  // ✅ (3) Image URL Helper (Double URL ပြဿနာဖြေရှင်းရန်)
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    // အကယ်၍ path က http နဲ့စရင် (Cloudinary URL ဖြစ်ရင်) ဒီအတိုင်းသုံးမယ်
+    if (path.startsWith("http")) return path;
+    // မဟုတ်ရင် Backend URL ခံပြီးသုံးမယ်
+    return `https://myanedu-backend.onrender.com/${path}`;
   };
 
   const handleEnterClass = (batchId, courseName, expireDate, status) => {
@@ -203,7 +207,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <div className="history-info">
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
-                                {/* Display Transaction ID here */}
                                 <span className="history-id" style={{fontWeight:'bold'}}>
                                     {getDisplayID(p)}
                                 </span>
@@ -234,7 +237,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
          ))}
       </div>
 
-      {/* --- PAYMENT DETAIL MODAL (Updated) --- */}
+      {/* PAYMENT DETAIL MODAL */}
       {selectedPayment && (
         <div className="payment-modal-overlay" onClick={() => setSelectedPayment(null)}>
             <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
@@ -254,7 +257,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <span className={`badge ${selectedPayment.status}`}>{selectedPayment.status.toUpperCase()}</span>
                     </div>
                     
-                    {/* ✅ (2) Transaction ID */}
                     <div className="pm-row">
                         <span className="pm-label">Transaction ID</span>
                         <span className="pm-value" style={{fontFamily: 'monospace', fontWeight: 'bold', color: '#2563eb'}}>
@@ -262,7 +264,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         </span>
                     </div>
 
-                    {/* ✅ (3) ငွေလွှဲလက်ခံမည့် ဖုန်းနံပါတ် (Transfer To) */}
+                    {/* ✅ "Transfer To" Phone Number Display */}
                     <div className="pm-row">
                         <span className="pm-label">Transfer To</span>
                         <span className="pm-value">
@@ -275,20 +277,18 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <span className="pm-value">{new Date(selectedPayment.payment_date).toLocaleString()}</span>
                     </div>
 
-                    {/* ✅ (4) Receipt Image Display */}
+                    {/* ✅ Corrected Image URL Logic */}
                     {selectedPayment.receipt_image ? (
                         <div className="pm-receipt-box">
                             <p style={{fontSize:'12px', marginBottom:'8px', color:'#64748b'}}>Uploaded Screenshot:</p>
-                            {/* Link to open full image */}
-                            <a href={`https://myanedu-backend.onrender.com/${selectedPayment.receipt_image}`} target="_blank" rel="noopener noreferrer">
+                            <a href={getImageUrl(selectedPayment.receipt_image)} target="_blank" rel="noopener noreferrer">
                                 <img 
-                                    src={`https://myanedu-backend.onrender.com/${selectedPayment.receipt_image}`} 
+                                    src={getImageUrl(selectedPayment.receipt_image)} 
                                     alt="Receipt" 
                                     className="pm-receipt-img"
-                                    style={{border: '1px solid #e2e8f0', cursor: 'zoom-in'}}
+                                    style={{border: '1px solid #e2e8f0', cursor: 'zoom-in', maxWidth: '100%'}}
                                     onError={(e) => {
                                         e.target.style.display = 'none';
-                                        e.target.parentNode.innerHTML += `<span style="color:red; font-size:12px; display:block; padding:10px;">Unable to load image</span>`;
                                     }}
                                 />
                             </a>
