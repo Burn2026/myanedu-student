@@ -25,11 +25,14 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
   };
 
-  // Helper to safely get an ID to display
-  // Transaction ID မရှိလျှင် System ID (ပထမ ၈ လုံး) ကို ပြမည်
+  // ✅ ပြင်ဆင်ချက် (၁): Transaction ID အစစ်ကို ဦးစားပေးပြသခြင်း
   const getDisplayID = (payment) => {
-    if (payment.transaction_id) return `#${payment.transaction_id}`;
-    return `#${payment.id.toString().substring(0, 8)}`;
+    // 1. Transaction ID ရှိပြီး null မဟုတ်ရင် အဲ့ဒါကိုပဲ ပြမယ် (ဥပမာ: "293847")
+    if (payment.transaction_id && payment.transaction_id !== "null" && payment.transaction_id !== "") {
+        return payment.transaction_id;
+    }
+    // 2. မရှိရင်တော့ System ID (#1, #2...) ကိုပဲ ပြမယ်
+    return `#${payment.id}`;
   };
 
   const handleEnterClass = (batchId, courseName, expireDate, status) => {
@@ -52,7 +55,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     doc.setFontSize(14); doc.text("Official Payment Receipt", 105, 30, null, null, "center");
     
     doc.setTextColor(0, 0, 0); doc.setFontSize(12);
-    // Use Helper
+    // Receipt မှာလည်း Function ကို ခေါ်သုံးထားပါတယ်
     doc.text(`Receipt ID: ${getDisplayID(payment)}`, 20, 60);
     doc.text(`Date: ${new Date(payment.payment_date).toLocaleDateString()}`, 150, 60);
     
@@ -122,8 +125,10 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
                                 <span>{new Date(p.payment_date).toLocaleDateString()}</span>
-                                {/* ✅ Fix 1: Use getDisplayID helper */}
-                                <span className="history-id">{getDisplayID(p)}</span>
+                                {/* ✅ ID ပြသရာတွင် Helper Function ကိုသုံးသည် */}
+                                <span className="history-id">
+                                    {getDisplayID(p)}
+                                </span>
                             </div>
                         </div>
                         <span className={`badge ${p.status}`}>{p.status}</span>
@@ -181,7 +186,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <div className="history-info">
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
-                                {/* ✅ Fix 2: Use getDisplayID helper */}
+                                {/* ✅ Payment List တွင်လည်း Helper Function သုံးသည် */}
                                 <span className="history-id">{getDisplayID(p)}</span>
                                 <span>• {new Date(p.payment_date).toLocaleDateString()}</span>
                             </div>
@@ -210,7 +215,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
          ))}
       </div>
 
-      {/* PAYMENT MODAL */}
+      {/* PAYMENT DETAIL MODAL */}
       {selectedPayment && (
         <div className="payment-modal-overlay" onClick={() => setSelectedPayment(null)}>
             <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
@@ -231,7 +236,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                     </div>
                     <div className="pm-row">
                         <span className="pm-label">Transaction ID</span>
-                        {/* ✅ Fix 3: Show ID in Modal */}
+                        {/* ✅ Modal တွင်လည်း ID အစစ်ပေါ်ရန် ပြင်ဆင်ထားသည် */}
                         <span className="pm-value" style={{fontFamily: 'monospace', fontWeight: 'bold'}}>
                             {getDisplayID(selectedPayment)}
                         </span>
