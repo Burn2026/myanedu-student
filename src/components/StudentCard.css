@@ -8,6 +8,8 @@
   gap: 30px;
   padding: 20px;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .identity-card {
@@ -18,8 +20,8 @@
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
   border: 1px solid #e2e8f0;
   flex: 1;
-  min-width: 300px; /* Desktop မှာ အနည်းဆုံး အကျယ် */
-  max-width: 400px;
+  min-width: 300px; /* Desktop Only */
+  max-width: 400px; /* Desktop Only */
   position: relative;
   overflow: hidden;
 }
@@ -40,12 +42,12 @@
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
   border: 1px solid #e2e8f0;
   flex: 2;
-  min-width: 300px; /* Desktop မှာ အနည်းဆုံး အကျယ် */
+  min-width: 300px; /* Desktop Only */
 }
 
 /* --- Common Styles --- */
 .avatar-wrapper { position: relative; z-index: 1; margin-top: 40px; margin-bottom: 15px; }
-.avatar { width: 120px; height: 120px; border-radius: 50%; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); object-fit: cover; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #2563eb; margin: 0 auto; /* Avatar အလယ်ပို့ရန် */ }
+.avatar { width: 120px; height: 120px; border-radius: 50%; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); object-fit: cover; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #2563eb; margin: 0 auto; }
 
 .student-name { font-size: 24px; font-weight: 800; color: #1e293b; margin: 0; position: relative; z-index: 1; }
 .student-role { font-size: 14px; color: #64748b; margin-bottom: 20px; font-weight: 500; position: relative; z-index: 1; }
@@ -65,24 +67,25 @@
 .image-upload-wrapper { text-align: center; margin-bottom: 20px; border: 2px dashed #cbd5e1; padding: 20px; border-radius: 10px; cursor: pointer; transition: border-color 0.2s; display: block; }
 
 /* =========================================
-   MOBILE RESPONSIVE FIX (အရေးကြီးဆုံးအပိုင်း)
+   MOBILE RESPONSIVE FIX (Updated)
    ========================================= */
 @media (max-width: 900px) {
   .profile-container {
     flex-direction: column; /* အပေါ်အောက် စီမယ် */
-    align-items: center;    /* အလယ်တည့်တည့် */
-    justify-content: center;
-    padding: 0;
+    align-items: stretch;   /* ဘယ်ညာ အပြည့်ဆွဲဆန့်မယ် (Center အစား Stretch သုံးလိုက်ပါ) */
+    justify-content: flex-start;
+    padding: 0; /* Container Padding ဖြုတ်မယ် (Main Content က Padding ပါပြီးသားမို့လို့) */
     gap: 20px;
     width: 100%;
   }
 
   .identity-card, 
   .details-card {
-    width: 100% !important;     /* အကျယ်အပြည့်ယူမယ် */
-    max-width: 100% !important; 
-    min-width: auto !important; /* Desktop က min-width 300px ကို ဖျက်လိုက်မယ် */
-    margin: 0 auto !important;  /* အလယ်တည့်တည့် */
+    width: 100% !important;     /* Width အပြည့် */
+    max-width: 100% !important; /* Max width ကန့်သတ်ချက်ဖြုတ်မယ် */
+    min-width: 0 !important;    /* Min width ကန့်သတ်ချက်ဖြုတ်မယ် */
+    flex: none !important;      /* Flex behavior ကို ပိတ်မယ် */
+    margin: 0 !important;       /* Margin တွေ ရှင်းမယ် */
     box-sizing: border-box;
   }
   
