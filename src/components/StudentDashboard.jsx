@@ -1,206 +1,131 @@
 import React, { useState } from 'react';
-import StudentCard from './StudentCard';
-import PaymentList from './PaymentList';
-import OnlinePayment from './OnlinePayment';
-import ExamList from './ExamList';
 import Classroom from './Classroom'; 
+import PaymentList from './PaymentList';
 
 function StudentDashboard({ student, payments, exams, onLogout, refreshData, preSelectedBatch }) {
   const [activeTab, setActiveTab] = useState(preSelectedBatch ? 'payment' : 'overview');
-  const [selectedClass, setSelectedClass] = useState(null); 
-  const [renewBatchId, setRenewBatchId] = useState(null);
+  const [selectedClass, setSelectedClass] = useState(null);
 
-  // ✅ Stats Logic (Verified ဖြစ်တဲ့ Payment တွေကိုပဲ ပေါင်းမည်)
-  const totalPaid = payments.filter(p => p.status === 'verified').reduce((sum, p) => sum + Number(p.amount), 0);
+  // Stats - Verified ဖြစ်သော payment များကိုသာ တွက်ချက်မည်
   const activePayments = payments.filter(p => p.status === 'verified');
-  const uniqueCourses = Array.from(new Set(activePayments.map(p => p.course_name))); 
-  const totalCourses = uniqueCourses.length;
-  const latestExam = exams.length > 0 ? exams[0].grade : '-';
-  
-  // My Classes အတွက် payments အားလုံးကို ယူမည်
-  const allClasses = payments; 
-
-  const getDaysRemaining = (expireDate) => {
-    if (!expireDate) return 0;
-    const today = new Date();
-    const exp = new Date(expireDate);
-    const diffTime = exp - today;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-  };
-
-  const handleEnterClass = (batchId, courseName, expireDate, status) => {
-    if (status !== 'verified') {
-        alert("🔒 Access Denied.\nYour payment is pending or rejected. Please contact admin.");
-        return;
-    }
-    const daysLeft = getDaysRemaining(expireDate);
-    if (daysLeft <= 0) {
-        alert("⚠️ Subscription Expired!\nPlease renew your subscription to continue learning.");
-        return;
-    }
-    setSelectedClass({ id: batchId, name: courseName });
-  };
-
-  const handleRenew = (batchId) => {
-      setRenewBatchId(batchId);
-      setActiveTab('payment'); 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const totalPaid = activePayments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   if (selectedClass) {
-    return (
-      <Classroom 
-        batchId={selectedClass.id} 
-        courseName={selectedClass.name} 
-        onBack={() => setSelectedClass(null)} 
-        studentName={student.name}
-      />
-    );
+    return <Classroom batchId={selectedClass.id} courseName={selectedClass.name} onBack={() => setSelectedClass(null)} studentName={student.name} />;
   }
 
-  const premiumCardStyle = {
-    padding: '20px', 
-    background: 'white', 
-    borderRadius: '16px', 
-    boxShadow: '0 4px 15px rgba(0,0,0,0.05)', 
-    border: '1px solid #f1f5f9',
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%'
-  };
-
   return (
-    <div className="dashboard-container">
-      
-      {/* --- RESPONSIVE SIDEBAR & CONTENT LAYOUT --- */}
+    <div className="dashboard-wrapper">
       <style>{`
-        .dashboard-layout { display: flex; flex-direction: column; min-height: 100vh; background: #f8fafc; }
-        .dashboard-header { height: 70px; background: white; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; alignItems: center; padding: 0 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
-        .main-wrapper { display: flex; margin-top: 70px; flex: 1; }
-        .sidebar { width: 260px; background: white; border-right: 1px solid #e2e8f0; position: fixed; height: calc(100vh - 70px); overflow-y: auto; padding: 20px 0; z-index: 999; transition: transform 0.3s; }
-        .content { flex: 1; margin-left: 260px; padding: 30px; transition: margin-left 0.3s; }
-        .menu-item { padding: 14px 24px; cursor: pointer; color: #64748b; font-weight: 500; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
-        .menu-item:hover { background: #f1f5f9; color: #2563eb; }
-        .menu-item.active { background: #eff6ff; color: #2563eb; border-right: 3px solid #2563eb; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .dashboard-container { display: flex; flex-direction: column; min-height: 100vh; background: #f1f5f9; }
+        .top-nav { height: 60px; background: white; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+        .main-body { display: flex; margin-top: 60px; flex: 1; }
+        .sidebar { width: 240px; background: white; border-right: 1px solid #e2e8f0; position: fixed; height: calc(100vh - 60px); padding: 20px 0; }
+        .main-content { flex: 1; margin-left: 240px; padding: 20px; width: 100%; }
         
-        @media (max-width: 992px) {
-          .sidebar { transform: translateX(-100%); width: 0; padding: 0; }
-          .content { margin-left: 0; padding: 20px; }
-          .mobile-nav { display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; z-index: 1001; height: 60px; justify-content: space-around; align-items: center; }
-          .dashboard-content { padding-bottom: 80px; }
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+          .sidebar { display: none; }
+          .main-content { margin-left: 0; padding: 15px; padding-bottom: 80px; }
+          .mobile-bottom-nav { display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; height: 65px; justify-content: space-around; align-items: center; z-index: 1000; }
+          .nav-item { display: flex; flexDirection: column; align-items: center; font-size: 11px; color: #64748b; cursor: pointer; }
+          .nav-item.active { color: #2563eb; font-weight: bold; }
         }
+        
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .status-verified { background: #dcfce7; color: #166534; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-pending { background: #fef9c3; color: #854d0e; }
       `}</style>
 
-      <div className="dashboard-layout">
-        <div className="dashboard-header">
-           <div style={{fontWeight: '800', fontSize: '18px', color: '#2563eb'}}>🎓 MyanEdu</div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-              <span style={{fontWeight: '600', fontSize: '14px', color: '#1e293b'}} className="hide-mobile">{student.name}</span>
-              <button onClick={onLogout} style={{padding: '6px 12px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px'}}>Logout</button>
-           </div>
+      <div className="dashboard-container">
+        {/* Top Header */}
+        <div className="top-nav">
+          <div style={{fontWeight: 'bold', color: '#2563eb'}}>🎓 MyanEdu Portal</div>
+          <button onClick={onLogout} style={{padding: '5px 12px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '5px', fontSize: '12px'}}>Logout</button>
         </div>
 
-        <div className="main-wrapper">
-          {/* Desktop Sidebar */}
+        <div className="main-body">
+          {/* Sidebar (Desktop only) */}
           <div className="sidebar">
-            {['overview', 'classroom', 'payment', 'exams', 'profile'].map(tab => (
-              <div key={tab} className={`menu-item ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
-                {tab === 'overview' && '📊 Overview'}
-                {tab === 'classroom' && '📚 My Classes'}
-                {tab === 'payment' && '💳 Payments'}
-                {tab === 'exams' && '📝 Exams'}
-                {tab === 'profile' && '👤 Profile'}
-              </div>
-            ))}
+             {['overview', 'classroom', 'payment'].map(tab => (
+               <div key={tab} onClick={() => setActiveTab(tab)} style={{padding: '12px 25px', cursor: 'pointer', background: activeTab === tab ? '#eff6ff' : 'transparent', color: activeTab === tab ? '#2563eb' : '#64748b', fontWeight: activeTab === tab ? 'bold' : 'normal', borderRight: activeTab === tab ? '3px solid #2563eb' : 'none'}}>
+                 {tab === 'overview' ? '📊 Overview' : tab === 'classroom' ? '📚 My Classes' : '💳 Payments'}
+               </div>
+             ))}
           </div>
 
-          <div className="content">
-            {/* 1. Overview */}
+          <div className="main-content">
             {activeTab === 'overview' && (
               <div>
-                <h2 style={{marginBottom: '20px'}}>Welcome Back, {student.name}!</h2>
-                <div className="stats-grid">
-                  <div className="stat-card" style={{background:'white', padding:'20px', borderRadius:'12px', border:'1px solid #e2e8f0'}}>
-                    <p style={{color:'#64748b', fontSize:'13px', margin:0}}>Joined Courses</p>
-                    <h3 style={{fontSize:'24px', margin:'5px 0'}}>{totalCourses}</h3>
-                  </div>
-                  <div className="stat-card" style={{background:'white', padding:'20px', borderRadius:'12px', border:'1px solid #e2e8f0'}}>
-                    <p style={{color:'#64748b', fontSize:'13px', margin:0}}>Total Invested</p>
-                    <h3 style={{fontSize:'24px', margin:'5px 0', color:'#16a34a'}}>{totalPaid.toLocaleString()} Ks</h3>
-                  </div>
-                  <div className="stat-card" style={{background:'white', padding:'20px', borderRadius:'12px', border:'1px solid #e2e8f0'}}>
-                    <p style={{color:'#64748b', fontSize:'13px', margin:0}}>Latest Grade</p>
-                    <h3 style={{fontSize:'24px', margin:'5px 0', color:'#ca8a04'}}>{latestExam}</h3>
-                  </div>
+                <h2>Welcome, {student.name}</h2>
+                <div style={{background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', marginBottom: '20px'}}>
+                  <p style={{margin: 0, color: '#64748b'}}>Total Invested</p>
+                  <h3 style={{margin: '5px 0', fontSize: '24px'}}>{totalPaid.toLocaleString()} Ks</h3>
                 </div>
-                
-                <h3 style={{marginBottom: '15px'}}>Recent Payments</h3>
-                <PaymentList payments={payments.slice(0, 5)} student={student} />
+                <h3>Recent Payments</h3>
+                <PaymentList payments={payments} />
               </div>
             )}
 
-            {/* 2. My Classes */}
             {activeTab === 'classroom' && (
-              <div>
-                <h2 style={{marginBottom: '20px'}}>📚 My Classroom</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-                  {allClasses.map(cls => {
-                    const daysLeft = getDaysRemaining(cls.expire_date);
-                    const isExpired = daysLeft <= 0;
-                    const isRejected = cls.status === 'rejected'; 
-                    const isPending = cls.status === 'pending';
-
-                    return (
-                      <div key={cls.id} style={premiumCardStyle}>
-                        <div style={{position:'absolute', top:0, left:0, right:0, height:'4px', background: isRejected ? '#dc2626' : (isPending ? '#f59e0b' : (isExpired ? '#ef4444' : '#2563eb'))}}></div>
-                        <div style={{display:'flex', justifyContent:'space-between', marginBottom:'15px'}}>
-                          <span style={{padding:'4px 8px', borderRadius:'6px', fontSize:'10px', fontWeight:'bold', background: isRejected ? '#fee2e2' : (isPending ? '#fef3c7' : '#eff6ff'), color: isRejected ? '#dc2626' : (isPending ? '#d97706' : '#2563eb')}}>
-                            {cls.status.toUpperCase()}
-                          </span>
-                          {!isRejected && !isPending && <span style={{fontSize:'11px', color: isExpired ? '#ef4444' : '#16a34a'}}>{isExpired ? 'Expired' : `${daysLeft} Days Left`}</span>}
-                        </div>
-                        <h3 style={{fontSize:'17px', margin:'0 0 5px 0'}}>{cls.course_name}</h3>
-                        <p style={{fontSize:'13px', color:'#64748b', marginBottom:'20px'}}>{cls.batch_name}</p>
-                        
-                        <div style={{marginTop:'auto'}}>
-                          {isRejected ? (
-                            <button disabled style={{width:'100%', padding:'10px', background:'#f1f5f9', color:'#94a3b8', border:'none', borderRadius:'8px'}}>⛔ Access Revoked</button>
-                          ) : isPending ? (
-                            <button disabled style={{width:'100%', padding:'10px', background:'#fffbeb', color:'#d97706', border:'none', borderRadius:'8px'}}>⏳ Verifying Payment...</button>
-                          ) : isExpired ? (
-                            <button onClick={() => handleRenew(cls.batch_id)} style={{width:'100%', padding:'10px', background:'#ef4444', color:'white', border:'none', borderRadius:'8px', fontWeight:'bold'}}>↻ Renew Subscription</button>
-                          ) : (
-                            <button onClick={() => handleEnterClass(cls.batch_id, cls.course_name, cls.expire_date, cls.status)} style={{width:'100%', padding:'10px', background:'#2563eb', color:'white', border:'none', borderRadius:'8px', fontWeight:'bold'}}>▶ Enter Class</button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+              <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px'}}>
+                {payments.map(cls => (
+                  <div key={cls.id} style={{background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', position: 'relative'}}>
+                     <span className={`status-badge status-${cls.status}`} style={{position: 'absolute', top: '15px', right: '15px'}}>
+                        {cls.status.toUpperCase()}
+                     </span>
+                     <h3 style={{fontSize: '17px', marginBottom: '5px'}}>{cls.course_name}</h3>
+                     <p style={{fontSize: '13px', color: '#64748b'}}>{cls.batch_name}</p>
+                     <div style={{marginTop: '20px'}}>
+                        {cls.status === 'verified' ? (
+                           <button onClick={() => setSelectedClass({id: cls.batch_id, name: cls.course_name})} style={{width: '100%', padding: '10px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold'}}>▶ Enter Class</button>
+                        ) : cls.status === 'rejected' ? (
+                           <button disabled style={{width: '100%', padding: '10px', background: '#f1f5f9', color: '#94a3b8', border: 'none', borderRadius: '8px'}}>🚫 Access Denied</button>
+                        ) : (
+                           <button disabled style={{width: '100%', padding: '10px', background: '#fffbeb', color: '#d97706', border: 'none', borderRadius: '8px'}}>⏳ Verifying...</button>
+                        )}
+                     </div>
+                  </div>
+                ))}
               </div>
             )}
 
             {activeTab === 'payment' && (
               <div>
-                <h2>💳 Payment Management</h2>
-                <OnlinePayment student={student} onPaymentSuccess={refreshData} preSelectedBatch={renewBatchId || preSelectedBatch} />
-                <div style={{marginTop: '30px'}}><PaymentList payments={payments} student={student} /></div>
+                <h2 style={{marginBottom: '20px'}}>💳 Payment History</h2>
+                <div style={{background: 'white', borderRadius: '10px', overflowX: 'auto'}}>
+                   <table style={{width: '100%', borderCollapse: 'collapse', minWidth: '500px'}}>
+                      <thead style={{background: '#f8fafc', borderBottom: '1px solid #e2e8f0'}}>
+                         <tr>
+                            <th style={{padding: '12px', textAlign: 'left'}}>Date</th>
+                            <th style={{padding: '12px', textAlign: 'left'}}>Course</th>
+                            <th style={{padding: '12px', textAlign: 'center'}}>Status</th>
+                         </tr>
+                      </thead>
+                      <tbody>
+                         {payments.map(p => (
+                            <tr key={p.id} style={{borderBottom: '1px solid #f1f5f9'}}>
+                               <td style={{padding: '12px', fontSize: '13px'}}>{new Date(p.payment_date).toLocaleDateString()}</td>
+                               <td style={{padding: '12px', fontSize: '14px', fontWeight: 'bold'}}>{p.course_name}</td>
+                               <td style={{padding: '12px', textAlign: 'center'}}>
+                                  <span className={`status-badge status-${p.status}`}>{p.status === 'verified' ? 'အောင်မြင်' : p.status === 'rejected' ? 'ငြင်းပယ်ခံရ' : 'စောင့်ဆိုင်းဆဲ'}</span>
+                                </td>
+                            </tr>
+                         ))}
+                      </tbody>
+                   </table>
+                </div>
               </div>
             )}
-
-            {activeTab === 'exams' && <ExamList exams={exams} />}
-            {activeTab === 'profile' && <StudentCard student={student} onUpdate={refreshData} />}
           </div>
         </div>
 
-        {/* Mobile Bottom Navigation */}
-        <div className="mobile-nav" style={{display: 'none'}}>
-           <div onClick={() => setActiveTab('overview')} style={{color: activeTab === 'overview' ? '#2563eb' : '#64748b', fontSize: '20px'}}>📊</div>
-           <div onClick={() => setActiveTab('classroom')} style={{color: activeTab === 'classroom' ? '#2563eb' : '#64748b', fontSize: '20px'}}>📚</div>
-           <div onClick={() => setActiveTab('payment')} style={{color: activeTab === 'payment' ? '#2563eb' : '#64748b', fontSize: '20px'}}>💳</div>
-           <div onClick={() => setActiveTab('profile')} style={{color: activeTab === 'profile' ? '#2563eb' : '#64748b', fontSize: '20px'}}>👤</div>
+        {/* Mobile Bottom Nav */}
+        <div className="mobile-bottom-nav" style={{display: 'none'}}>
+           <div className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}><span>📊</span>Overview</div>
+           <div className={`nav-item ${activeTab === 'classroom' ? 'active' : ''}`} onClick={() => setActiveTab('classroom')}><span>📚</span>Classes</div>
+           <div className={`nav-item ${activeTab === 'payment' ? 'active' : ''}`} onClick={() => setActiveTab('payment')}><span>💳</span>Payments</div>
         </div>
       </div>
     </div>
