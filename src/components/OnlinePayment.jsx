@@ -5,44 +5,47 @@ function OnlinePayment() {
   const [selectedBatch, setSelectedBatch] = useState("");
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("KPay");
+  const [transactionId, setTransactionId] = useState(""); // (New) Transaction ID State
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Backend URL (Render Link)
+  // Backend URL
   const API_URL = "https://myanedu-backend.onrender.com"; 
 
-  // ၁။ Component စပွင့်တာနဲ့ Backend က Batch တွေကို လှမ်းယူပါမယ်
   useEffect(() => {
     fetch(`${API_URL}/public/batches`)
       .then(res => res.json())
       .then(data => {
-        setBatches(data); // ရလာတဲ့ Data ကို State ထဲထည့်မယ်
+        if(Array.isArray(data)) setBatches(data);
       })
       .catch(err => console.error("Error fetching batches:", err));
   }, []);
 
-  // ၂။ ငွေလွှဲပြေစာ တင်သွင်းခြင်း
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedBatch || !amount || !file) {
-      alert("Please fill all fields and upload receipt!");
+    // transactionId မပါရင် Error ပြမယ်
+    if (!selectedBatch || !amount || !file || !transactionId) {
+      alert("ကျေးဇူးပြု၍ အချက်အလက်အားလုံး ပြည့်စုံစွာ ဖြည့်သွင်းပါ (ပုံ နှင့် လုပ်ငန်းစဉ်နံပါတ် အပါအဝင်)");
       return;
     }
 
     setLoading(true);
     const formData = new FormData();
     
-    // Login ဝင်ထားသော ကျောင်းသား ID ကို LocalStorage မှ ယူပါမည်
-    const studentData = JSON.parse(localStorage.getItem('studentAuth'));
-    if (!studentData) {
-        alert("Please Login first!");
+    const rawData = localStorage.getItem('studentAuth');
+    if (!rawData) {
+        alert("Login Data not found! Please Login again."); 
+        setLoading(false);
         return;
     }
 
+    const studentData = JSON.parse(rawData);
+    
     formData.append("student_id", studentData.id);
     formData.append("batch_id", selectedBatch);
     formData.append("amount", amount);
     formData.append("payment_method", paymentMethod);
+    formData.append("transaction_id", transactionId); // (New) ID ထည့်ပို့ခြင်း
     formData.append("receipt", file);
 
     try {
@@ -53,11 +56,12 @@ function OnlinePayment() {
 
       const data = await res.json();
       if (res.ok) {
-        alert("Payment Submitted Successfully! Please wait for admin verification.");
+        alert("ငွေပေးချေမှု တင်ပြခြင်း အောင်မြင်ပါသည်။ Admin အတည်ပြုမှုကို စောင့်ဆိုင်းပေးပါ။");
         // Reset Form
         setAmount("");
         setFile(null);
         setSelectedBatch("");
+        setTransactionId(""); // Reset ID
       } else {
         alert(data.message || "Upload Failed");
       }
@@ -76,7 +80,7 @@ function OnlinePayment() {
         
         <form onSubmit={handleSubmit} style={styles.form}>
           
-          {/* --- Batch Selection (Dynamic Dropdown) --- */}
+          {/* Batch Selection */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>သင်တန်းရွေးချယ်ပါ (Select Course/Batch)</label>
             <select 
@@ -84,26 +88,21 @@ function OnlinePayment() {
               value={selectedBatch} 
               onChange={(e) => {
                 setSelectedBatch(e.target.value);
-                // အတန်းရွေးလိုက်ရင် Fees ကို Auto ဖြည့်ပေးမည့် Logic
                 const batch = batches.find(b => b.id === e.target.value);
                 if(batch) setAmount(batch.fees);
               }}
               required
             >
               <option value="">-- အတန်းရွေးချယ်ပါ --</option>
-              {batches.length > 0 ? (
-                batches.map((batch) => (
+              {batches.length > 0 && batches.map((batch) => (
                   <option key={batch.id} value={batch.id}>
                     {batch.course_title} - {batch.batch_name} ({Number(batch.fees).toLocaleString()} Ks)
                   </option>
-                ))
-              ) : (
-                <option disabled>Loading classes...</option>
-              )}
+              ))}
             </select>
           </div>
 
-          {/*Amount Input*/}
+          {/* Amount Input */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>ငွေပမာဏ (Amount)</label>
             <input 
@@ -139,9 +138,22 @@ function OnlinePayment() {
             <p style={{margin: 0, fontSize: '0.9rem'}}>(U Kyaw Kyaw)</p>
           </div>
 
+          {/* (NEW) Transaction ID Input */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>လုပ်ငန်းစဉ်နံပါတ် (Transaction ID / Last 4 Digits) *</label>
+            <input 
+              type="text" 
+              style={styles.input}
+              value={transactionId} 
+              onChange={(e) => setTransactionId(e.target.value)} 
+              placeholder="e.g. 012345 or Last 4 digits"
+              required 
+            />
+          </div>
+
           {/* File Upload */}
           <div style={styles.inputGroup}>
-            <label style={styles.label}>လုပ်ဆောင်မှု နံပါတ် (Transaction Screenshot) *</label>
+            <label style={styles.label}>ငွေလွှဲပြေစာ ဓာတ်ပုံ (Screenshot) *</label>
             <input 
               type="file" 
               accept="image/*"
@@ -181,7 +193,7 @@ const styles = {
     borderRadius: '12px',
     boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
     width: '100%',
-    maxWidth: '500px', // PC မှာ အရမ်းမကျယ်သွားအောင် ထိန်းထားခြင်း
+    maxWidth: '500px', 
   },
   header: {
     color: '#1f2937',
@@ -210,7 +222,7 @@ const styles = {
     border: '1px solid #d1d5db',
     fontSize: '1rem',
     width: '100%',
-    boxSizing: 'border-box', // Padding ကြောင့် Size မကြီးသွားအောင်
+    boxSizing: 'border-box',
   },
   infoBox: {
     backgroundColor: '#ecfdf5',
