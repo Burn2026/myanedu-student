@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import StudentCard from './StudentCard';
 import OnlinePayment from './OnlinePayment';
 import ExamList from './ExamList';
-import Classroom from './Classroom'; 
+import Classroom from './Classroom';
+import jsPDF from 'jspdf'; // PDF Download အတွက် import
 
 function StudentDashboard({ student, payments, exams, onLogout, refreshData, preSelectedBatch }) {
   const [activeTab, setActiveTab] = useState(preSelectedBatch ? 'payment' : 'overview');
   const [selectedClass, setSelectedClass] = useState(null); 
   const [renewBatchId, setRenewBatchId] = useState(null);
+  
+  // (New) Modal State
+  const [selectedPayment, setSelectedPayment] = useState(null);
 
   // --- STATS LOGIC ---
   const activePayments = payments.filter(p => p.status === 'verified');
@@ -16,6 +20,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   const latestExam = exams.length > 0 ? exams[0].grade : '-';
   const allClasses = payments; 
 
+  // --- HELPERS ---
   const getDaysRemaining = (expireDate) => {
     if (!expireDate) return 0;
     const diff = new Date(expireDate) - new Date();
@@ -34,6 +39,36 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
       window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // --- PDF GENERATION LOGIC ---
+  const generateReceipt = (payment) => {
+    const doc = new jsPDF();
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22); doc.text("MyanEdu Portal", 105, 20, null, null, "center");
+    doc.setFontSize(14); doc.text("Official Receipt", 105, 30, null, null, "center");
+    
+    doc.setTextColor(0, 0, 0); doc.setFontSize(12);
+    doc.text(`Receipt ID: #${payment.transaction_id || payment.id.substring(0, 8)}`, 20, 60);
+    doc.text(`Date: ${new Date(payment.payment_date).toLocaleDateString()}`, 150, 60);
+    
+    doc.setDrawColor(200); doc.rect(20, 70, 170, 25);
+    doc.text(`Student: ${student.name}`, 30, 82); doc.text(`Phone: ${student.phone_primary}`, 120, 82);
+    
+    doc.setFontSize(14); doc.text("Payment Details", 20, 115);
+    doc.setFillColor(240); doc.rect(20, 120, 170, 10, 'F');
+    doc.setFontSize(12); doc.text("Description", 30, 126); doc.text("Amount", 160, 126);
+    
+    doc.text(payment.course_name, 30, 140);
+    doc.text(`${Number(payment.amount).toLocaleString()} Ks`, 160, 140);
+    doc.setFontSize(10); doc.text(`Method: ${payment.payment_method}`, 30, 146);
+    
+    doc.line(140, 155, 190, 155);
+    doc.setFontSize(14); doc.text(`Total: ${Number(payment.amount).toLocaleString()} Ks`, 160, 165);
+    
+    doc.save(`Receipt_${student.name}.pdf`);
+  };
+
   if (selectedClass) {
     return <Classroom batchId={selectedClass.id} courseName={selectedClass.name} onBack={() => setSelectedClass(null)} studentName={student.name} />;
   }
@@ -41,86 +76,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   return (
     <div className="dashboard-root">
       
-      <style>{`
-        /* 1. Desktop Sidebar (Fixed Left) */
-        .sidebar {
-          width: 260px;
-          background: white;
-          border-right: 1px solid #e2e8f0;
-          position: fixed;
-          top: 70px; /* Header အောက် */
-          bottom: 0;
-          left: 0;
-          padding: 20px;
-          z-index: 900;
-          overflow-y: auto;
-        }
-
-        /* 2. Main Content (Desktop) */
-        .main-content {
-          margin-left: 260px; /* Sidebar ရှိလို့ တွန်းထားသည် */
-          padding: 30px;
-          width: calc(100% - 260px);
-          min-height: calc(100vh - 70px);
-          box-sizing: border-box; /* Padding ကြောင့် width မကျော်အောင် */
-        }
-
-        /* 3. Components Styles */
-        .nav-item {
-          display: flex; align-items: center; gap: 12px;
-          padding: 12px 16px; border-radius: 10px;
-          color: #64748b; font-weight: 500; cursor: pointer; margin-bottom: 5px;
-        }
-        .nav-item:hover { background: #f1f5f9; color: #2563eb; }
-        .nav-item.active { background: #eff6ff; color: #2563eb; font-weight: 700; }
-
-        .premium-card {
-          background: white; border-radius: 16px; padding: 20px;
-          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-          border: 1px solid #e2e8f0; margin-bottom: 20px;
-        }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        
-        .mobile-nav { display: none; }
-
-        /* =========================================
-           MOBILE RESPONSIVENESS FIX (900px အောက်)
-           ========================================= */
-        @media (max-width: 900px) {
-          /* Sidebar ကို ဖျောက်မည် */
-          .sidebar { display: none; } 
-          
-          /* Main Content ကို ဘယ်ဘက်သို့ ပြန်ကပ်မည် */
-          .main-content { 
-            margin-left: 0 !important; 
-            width: 100% !important; 
-            padding: 15px; 
-            padding-bottom: 90px; /* အောက်ခြေ Menu အတွက် နေရာချန် */
-          }
-          
-          .stats-grid, .course-grid { grid-template-columns: 1fr; } /* Card တွေကို တစ်တန်းတည်းပြမည် */
-
-          /* Mobile Bottom Nav ကို ပြမည် */
-          .mobile-nav {
-            display: flex;
-            position: fixed; bottom: 0; left: 0; right: 0;
-            height: 65px;
-            background: white; border-top: 1px solid #e2e8f0;
-            justify-content: space-around; align-items: center;
-            z-index: 1001;
-            padding-bottom: env(safe-area-inset-bottom);
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
-          }
-          
-          .mobile-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #94a3b8; font-weight: 500; }
-          .mobile-item.active { color: #2563eb; font-weight: 700; }
-          .mobile-icon { font-size: 20px; margin-bottom: 2px; }
-        }
-      `}</style>
-
       {/* DESKTOP SIDEBAR */}
       <div className="sidebar">
          {[
@@ -131,7 +86,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
            {id: 'profile', icon: '👤', label: 'Profile'},
          ].map(item => (
            <div key={item.id} className={`nav-item ${activeTab === item.id ? 'active' : ''}`} onClick={() => setActiveTab(item.id)}>
-             <span style={{fontSize:'18px'}}>{item.icon}</span>
+             <span className="nav-icon">{item.icon}</span>
              {item.label}
            </div>
          ))}
@@ -157,23 +112,21 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
             </div>
 
             <h3 style={{fontSize:'18px', fontWeight:'700', marginBottom:'15px'}}>Recent Activity</h3>
-            <div className="premium-card" style={{padding:0, overflow:'hidden'}}>
-                <div className="table-scroll">
-                  <table>
-                      <thead><tr><th>Date</th><th>Course</th><th>Amount</th><th>Status</th></tr></thead>
-                      <tbody>
-                          {payments.slice(0, 5).map(p => (
-                              <tr key={p.id}>
-                                  <td>{new Date(p.payment_date).toLocaleDateString()}</td>
-                                  <td><div style={{fontWeight:'600'}}>{p.course_name}</div><div style={{fontSize:'11px', color:'#64748b'}}>{p.batch_name}</div></td>
-                                  <td>{Number(p.amount).toLocaleString()} Ks</td>
-                                  <td><span className={`badge ${p.status}`}>{p.status}</span></td>
-                              </tr>
-                          ))}
-                          {payments.length === 0 && <tr><td colSpan="4" style={{textAlign:'center', padding:'30px', color:'#94a3b8'}}>No recent activity.</td></tr>}
-                      </tbody>
-                  </table>
-                </div>
+            {/* Using the new List View for Overview as well */}
+            <div className="history-list">
+                {payments.slice(0, 3).map(p => (
+                    <div key={p.id} className="history-card" onClick={() => setSelectedPayment(p)}>
+                        <div className="history-info">
+                            <div className="history-course">{p.course_name}</div>
+                            <div className="history-meta">
+                                <span>{new Date(p.payment_date).toLocaleDateString()}</span>
+                                <span className="history-id">ID: {p.transaction_id || 'N/A'}</span>
+                            </div>
+                        </div>
+                        <span className={`badge ${p.status}`}>{p.status}</span>
+                    </div>
+                ))}
+                {payments.length === 0 && <p style={{textAlign:'center', color:'#94a3b8'}}>No recent activity.</p>}
             </div>
           </div>
         )}
@@ -216,30 +169,36 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
           </div>
         )}
 
-        {/* 3. PAYMENT */}
+        {/* 3. PAYMENT (UPDATED LIST VIEW) */}
         {activeTab === 'payment' && (
           <div>
             <h2 style={{fontSize:'22px', fontWeight:'700', marginBottom:'20px'}}>Manage Payments</h2>
             <div style={{maxWidth:'600px', margin:'0 auto'}}>
                 <OnlinePayment student={student} onPaymentSuccess={refreshData} preSelectedBatch={renewBatchId || preSelectedBatch} />
             </div>
+            
             <h3 style={{marginTop:'40px', marginBottom:'15px'}}>Payment History</h3>
-            <div className="premium-card" style={{padding:0, overflow:'hidden'}}>
-                <div className="table-scroll">
-                    <table>
-                        <thead><tr><th>Date</th><th>Course</th><th>Amount</th><th>Status</th></tr></thead>
-                        <tbody>
-                            {payments.map(p => (
-                                <tr key={p.id}>
-                                    <td>{new Date(p.payment_date).toLocaleDateString()}</td>
-                                    <td><div style={{fontWeight:'600'}}>{p.course_name}</div><div style={{fontSize:'11px', color:'#64748b'}}>{p.batch_name}</div></td>
-                                    <td>{Number(p.amount).toLocaleString()} Ks</td>
-                                    <td><span className={`badge ${p.status}`}>{p.status}</span></td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+            
+            {/* NEW LIST VIEW instead of Table */}
+            <div className="history-list">
+                {payments.map(p => (
+                    <div key={p.id} className="history-card" onClick={() => setSelectedPayment(p)}>
+                        <div className="history-info">
+                            <div className="history-course">{p.course_name}</div>
+                            <div className="history-meta">
+                                {/* Transaction ID & Date shown here */}
+                                <span className="history-id">#{p.transaction_id || '....'}</span>
+                                <span style={{fontSize:'11px'}}>• {new Date(p.payment_date).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div style={{textAlign:'right'}}>
+                            {/* Status Badge */}
+                            <span className={`badge ${p.status}`}>{p.status}</span>
+                            <div style={{fontSize:'10px', color:'#94a3b8', marginTop:'4px'}}>Click for details</div>
+                        </div>
+                    </div>
+                ))}
+                {payments.length === 0 && <div className="premium-card" style={{textAlign:'center', color:'#64748b'}}>No transaction history found.</div>}
             </div>
           </div>
         )}
@@ -264,6 +223,61 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
            </div>
          ))}
       </div>
+
+      {/* --- PAYMENT DETAIL MODAL --- */}
+      {selectedPayment && (
+        <div className="payment-modal-overlay" onClick={() => setSelectedPayment(null)}>
+            <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="pm-header">
+                    <div>
+                        <div className="pm-course-title">{selectedPayment.course_name}</div>
+                        <div className="pm-batch">{selectedPayment.batch_name}</div>
+                    </div>
+                    <button className="pm-close" onClick={() => setSelectedPayment(null)}>×</button>
+                </div>
+                
+                <div className="pm-body">
+                    <div className="pm-amount">{Number(selectedPayment.amount).toLocaleString()} Ks</div>
+                    
+                    <div className="pm-row">
+                        <span className="pm-label">Status</span>
+                        <span className={`badge ${selectedPayment.status}`}>{selectedPayment.status.toUpperCase()}</span>
+                    </div>
+                    <div className="pm-row">
+                        <span className="pm-label">Transaction ID</span>
+                        <span className="pm-value">{selectedPayment.transaction_id || "N/A"}</span>
+                    </div>
+                    <div className="pm-row">
+                        <span className="pm-label">Date</span>
+                        <span className="pm-value">{new Date(selectedPayment.payment_date).toLocaleString()}</span>
+                    </div>
+                    <div className="pm-row">
+                        <span className="pm-label">Method</span>
+                        <span className="pm-value">{selectedPayment.payment_method}</span>
+                    </div>
+
+                    {selectedPayment.receipt_image && (
+                        <div className="pm-receipt-box">
+                            <p style={{fontSize:'12px', marginBottom:'8px'}}>Uploaded Screenshot:</p>
+                            <img 
+                                src={`https://myanedu-backend.onrender.com/${selectedPayment.receipt_image}`} 
+                                alt="Receipt" 
+                                className="pm-receipt-img"
+                            />
+                        </div>
+                    )}
+                </div>
+
+                <div className="pm-actions">
+                    {selectedPayment.status === 'verified' && (
+                        <button className="btn-download" onClick={() => generateReceipt(selectedPayment)}>
+                            <span>⬇️</span> Download Receipt
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+      )}
 
     </div>
   );

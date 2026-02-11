@@ -284,3 +284,187 @@ td { padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
   .mobile-item.active { color: var(--primary-color); font-weight: 700; }
   .mobile-icon { font-size: 20px; margin-bottom: 2px; }
 }
+
+/* =========================================
+   PAYMENT HISTORY LIST (NEW PREMIUM STYLE)
+   ========================================= */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-card {
+  background: white;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.history-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+  border-color: #e2e8f0;
+}
+
+.history-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-course {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 15px;
+}
+
+.history-meta {
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-id {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  color: #475569;
+}
+
+/* =========================================
+   PAYMENT DETAIL MODAL (POPUP)
+   ========================================= */
+.payment-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.payment-modal {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh; /* Screen အပြည့်မဖြစ်စေရန် */
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.pm-header {
+  padding: 24px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.pm-course-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.pm-batch {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.pm-close {
+  background: #e2e8f0;
+  border: none;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  color: #64748b;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.pm-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.pm-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+}
+
+.pm-label { color: #64748b; }
+.pm-value { font-weight: 600; color: #1e293b; text-align: right; }
+
+.pm-amount {
+  font-size: 24px;
+  font-weight: 800;
+  color: #2563eb;
+  text-align: center;
+  margin: 10px 0 20px 0;
+}
+
+.pm-receipt-box {
+  margin-top: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.pm-receipt-img {
+  max-width: 100%;
+  border-radius: 8px;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+.pm-actions {
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-download {
+  flex: 1;
+  background: #1e293b;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
