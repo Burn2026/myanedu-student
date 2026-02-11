@@ -29,18 +29,34 @@ html, body, #root {
   color: var(--text-dark);
 }
 
-h1 { font-size: 2.5rem; line-height: 1.2; color: var(--primary-color); margin-bottom: 10px; font-weight: 800; }
+h1 { 
+  font-size: 2.5rem; 
+  line-height: 1.2; 
+  color: var(--primary-color); 
+  margin-bottom: 10px; 
+  font-weight: 800; 
+}
+
 h2, h3, h4 { color: var(--text-dark); margin-top: 0; }
 p { color: var(--text-gray); line-height: 1.6; }
 
 /* Responsive Text */
 .responsive-title { font-size: clamp(1.8rem, 5vw, 2.5rem); }
 
-/* --- GLOBAL UTILS --- */
+/* --- GLOBAL UTILS (GUEST VIEW LAYOUT FIX) --- */
 .container {
-  width: 100%; max-width: 1200px; margin: 0 auto; padding: 20px;
-  padding-top: calc(var(--header-height) + 20px); 
-  min-height: 100vh; box-sizing: border-box; position: relative; z-index: 1;
+  width: 100%; 
+  max-width: 1200px; 
+  margin: 0 auto; 
+  padding: 20px;
+  
+  /* ✅ FIX: Navbar အမြင့် + 40px အကွာအဝေး ပေါင်းထည့်ထားသည် */
+  padding-top: calc(var(--header-height) + 40px); 
+  
+  min-height: 100vh; 
+  box-sizing: border-box; 
+  position: relative; 
+  z-index: 1;
 }
 
 /* --- BADGES --- */
@@ -60,11 +76,19 @@ p { color: var(--text-gray); line-height: 1.6; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
+/* --- MOBILE RESPONSIVE GLOBAL --- */
 @media (max-width: 900px) {
-  .container {
-    width: 100%;
-    padding: 15px; /* ဘေးဘောင် Padding ကို ၁၅ လောက်ပဲထားပါ */
-    box-sizing: border-box; /* Padding ထည့်လည်း Size မကြီးသွားအောင် */
-    overflow-x: hidden;
+  :root { 
+    --header-height: 60px; /* Mobile Header အမြင့် */
+    --sidebar-width: 0px; 
   }
+  
+  .container { 
+    padding: 15px; 
+    
+    /* ✅ FIX: Mobile အတွက်လည်း အပေါ်ဘက်နေရာလွတ် ပိုချန်ထားသည် */
+    padding-top: calc(var(--header-height) + 50px); 
+  }
+  
+  h1 { font-size: 1.8rem; }
 }
