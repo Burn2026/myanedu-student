@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import './CourseShowcase.css';
 
 function CourseShowcase({ onRegisterClick }) {
   const [courses, setCourses] = useState([]);

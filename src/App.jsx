@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// Components
-import Navbar from './components/Navbar';
-import SearchForm from './components/SearchForm';
-import PublicRegister from './components/PublicRegister';
-import CourseShowcase from './components/CourseShowcase'; 
-import LoadingSpinner from './components/LoadingSpinner'; 
-import Instructors from './components/Instructors';
-import Footer from './components/Footer';
-import StudentDashboard from './components/StudentDashboard'; 
-
 function App() {
   const [view, setView] = useState('search'); 
   const [phone, setPhone] = useState("");

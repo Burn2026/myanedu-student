@@ -1,0 +1,42 @@
+/* src/components/CourseShowcase.css */
+
+.promo-section { padding: 40px 0; }
+.promo-header { text-align: center; margin-bottom: 40px; }
+.promo-title {
+  font-size: 28px; background: -webkit-linear-gradient(var(--primary-color), #06b6d4);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
+}
+
+.promo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 30px; }
+
+.promo-card {
+  background: white; border-radius: 20px; padding: 25px; position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+  transition: transform 0.3s ease; overflow: hidden;
+}
+.promo-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+
+.status-badge-corner { position: absolute; top: 15px; right: 15px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+.status-open { background: #dcfce7; color: #166534; }
+.status-full { background: #fee2e2; color: #991b1b; }
+
+.course-img-placeholder {
+  height: 100px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 40px; margin-bottom: 20px;
+}
+
+.promo-course-title { font-size: 18px; font-weight: 800; color: var(--text-dark); margin-bottom: 5px; }
+.promo-batch { color: var(--text-gray); font-size: 14px; margin-bottom: 15px; }
+.seats-info { font-size: 13px; color: var(--primary-color); font-weight: 600; margin-bottom: 20px; }
+
+.promo-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+.btn-register { background: var(--primary-color); color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
+.btn-register:hover { background: var(--primary-hover); }
+.btn-full { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+
+@media (max-width: 900px) {
+  .promo-grid { grid-template-columns: 1fr; }
+  .promo-title { font-size: 22px; }
+}

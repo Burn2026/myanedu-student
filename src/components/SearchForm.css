@@ -1,0 +1,45 @@
+/* src/components/SearchForm.css */
+
+.search-card {
+  background: white; padding: 30px; border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); margin-bottom: 30px;
+  text-align: center; border: 1px solid #e2e8f0;
+  max-width: 500px; margin-left: auto; margin-right: auto;
+}
+
+.search-input {
+  width: 100%; padding: 14px 16px; border: 1px solid #cbd5e1;
+  border-radius: 10px; font-size: 16px; outline: none; box-sizing: border-box;
+  background-color: #f8fafc; transition: 0.2s;
+}
+.search-input:focus { border-color: var(--primary-color); background-color: white; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+
+.search-btn {
+  width: 100%; padding: 14px; background-color: var(--primary-color);
+  color: white; border: none; border-radius: 10px; font-weight: bold;
+  font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 15px;
+}
+.search-btn:hover { background-color: var(--primary-hover); }
+
+.error-msg {
+  background-color: #fef2f2; color: #991b1b; padding: 12px; border-radius: 8px;
+  margin-bottom: 20px; border: 1px solid #fca5a5; font-size: 14px; text-align: left;
+}
+
+/* Auth Selection Modal */
+.auth-modal-box {
+  background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 450px;
+  text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: popIn 0.3s ease-out;
+}
+.auth-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+.auth-option-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px 10px; cursor: pointer; background: white; transition: 0.2s; }
+.auth-option-card:hover { border-color: var(--primary-color); background-color: #eff6ff; transform: translateY(-2px); }
+.auth-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+.auth-label { font-weight: bold; font-size: 14px; color: var(--text-dark); display: block; }
+.auth-sub { font-size: 11px; color: var(--text-gray); }
+.close-modal-btn { background: none; border: none; color: var(--text-gray); text-decoration: underline; cursor: pointer; font-size: 14px; margin-top: 10px; }
+
+@media (max-width: 768px) {
+  .auth-options-grid { grid-template-columns: 1fr; }
+  .search-card { padding: 20px; }
+}

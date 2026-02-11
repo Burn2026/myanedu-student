@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
+import './StudentDashboard.css'; // Import the CSS file
 import StudentCard from './StudentCard';
 import OnlinePayment from './OnlinePayment';
 import ExamList from './ExamList';
 import Classroom from './Classroom';
-import jsPDF from 'jspdf'; // PDF Download အတွက် import
+import jsPDF from 'jspdf';
 
 function StudentDashboard({ student, payments, exams, onLogout, refreshData, preSelectedBatch }) {
   const [activeTab, setActiveTab] = useState(preSelectedBatch ? 'payment' : 'overview');
   const [selectedClass, setSelectedClass] = useState(null); 
   const [renewBatchId, setRenewBatchId] = useState(null);
   
-  // (New) Modal State
+  // Modal State
   const [selectedPayment, setSelectedPayment] = useState(null);
 
   // --- STATS LOGIC ---
@@ -39,21 +40,23 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
       window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // --- PDF GENERATION LOGIC ---
+  // --- PDF GENERATION ---
   const generateReceipt = (payment) => {
     const doc = new jsPDF();
     doc.setFillColor(37, 99, 235);
     doc.rect(0, 0, 210, 40, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22); doc.text("MyanEdu Portal", 105, 20, null, null, "center");
-    doc.setFontSize(14); doc.text("Official Receipt", 105, 30, null, null, "center");
+    doc.setFontSize(14); doc.text("Official Payment Receipt", 105, 30, null, null, "center");
     
     doc.setTextColor(0, 0, 0); doc.setFontSize(12);
-    doc.text(`Receipt ID: #${payment.transaction_id || payment.id.substring(0, 8)}`, 20, 60);
+    const receiptID = payment.transaction_id || payment.id.substring(0, 8);
+    doc.text(`Receipt ID: #${receiptID}`, 20, 60);
     doc.text(`Date: ${new Date(payment.payment_date).toLocaleDateString()}`, 150, 60);
     
     doc.setDrawColor(200); doc.rect(20, 70, 170, 25);
-    doc.text(`Student: ${student.name}`, 30, 82); doc.text(`Phone: ${student.phone_primary}`, 120, 82);
+    doc.text(`Student: ${student.name}`, 30, 82); 
+    doc.text(`Phone: ${student.phone_primary}`, 120, 82);
     
     doc.setFontSize(14); doc.text("Payment Details", 20, 115);
     doc.setFillColor(240); doc.rect(20, 120, 170, 10, 'F');
@@ -76,7 +79,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   return (
     <div className="dashboard-root">
       
-      {/* DESKTOP SIDEBAR */}
+      {/* SIDEBAR (Desktop) */}
       <div className="sidebar">
          {[
            {id: 'overview', icon: '📊', label: 'Overview'},
@@ -95,24 +98,30 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
       {/* MAIN CONTENT AREA */}
       <div className="main-content">
         
-        {/* 1. OVERVIEW */}
+        {/* 1. OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div className="animate-fade-in">
-            <h2 style={{fontSize:'22px', fontWeight:'700', marginBottom:'20px'}}>Welcome back, {student.name}!</h2>
+            <h2 className="welcome-title">Welcome back, {student.name}!</h2>
             
             <div className="stats-grid">
-              <div className="premium-card" style={{display:'flex', alignItems:'center', gap:'15px'}}>
-                <div style={{fontSize:'28px'}}>📚</div>
-                <div><div style={{fontSize:'24px', fontWeight:'700'}}>{totalCourses}</div><div style={{color:'#64748b', fontSize:'13px'}}>Active Courses</div></div>
+              <div className="premium-card stat-box">
+                <div className="stat-icon">📚</div>
+                <div>
+                    <div className="stat-value">{totalCourses}</div>
+                    <div className="stat-label">Active Courses</div>
+                </div>
               </div>
-              <div className="premium-card" style={{display:'flex', alignItems:'center', gap:'15px'}}>
-                <div style={{fontSize:'28px'}}>💰</div>
-                <div><div style={{fontSize:'24px', fontWeight:'700', color:'#16a34a'}}>{totalPaid.toLocaleString()} Ks</div><div style={{color:'#64748b', fontSize:'13px'}}>Total Invested</div></div>
+              <div className="premium-card stat-box">
+                <div className="stat-icon">💰</div>
+                <div>
+                    <div className="stat-value money">{totalPaid.toLocaleString()} Ks</div>
+                    <div className="stat-label">Total Invested</div>
+                </div>
               </div>
             </div>
 
-            <h3 style={{fontSize:'18px', fontWeight:'700', marginBottom:'15px'}}>Recent Activity</h3>
-            {/* Using the new List View for Overview as well */}
+            <h3 className="section-title">Recent Activity</h3>
+            
             <div className="history-list">
                 {payments.slice(0, 3).map(p => (
                     <div key={p.id} className="history-card" onClick={() => setSelectedPayment(p)}>
@@ -126,15 +135,15 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <span className={`badge ${p.status}`}>{p.status}</span>
                     </div>
                 ))}
-                {payments.length === 0 && <p style={{textAlign:'center', color:'#94a3b8'}}>No recent activity.</p>}
+                {payments.length === 0 && <div className="premium-card no-data">No recent activity.</div>}
             </div>
           </div>
         )}
 
-        {/* 2. CLASSROOM */}
+        {/* 2. CLASSROOM TAB */}
         {activeTab === 'classroom' && (
           <div>
-            <h2 style={{fontSize:'22px', fontWeight:'700', marginBottom:'20px'}}>My Classroom</h2>
+            <h2 className="welcome-title">My Classroom</h2>
             <div className="course-grid">
               {allClasses.map(cls => {
                 const daysLeft = getDaysRemaining(cls.expire_date);
@@ -142,24 +151,31 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                 const isRejected = cls.status === 'rejected';
                 const isPending = cls.status === 'pending';
 
+                // Determine border color style
+                const borderStyle = { borderTop: `4px solid ${isRejected ? '#ef4444' : isPending ? '#eab308' : '#2563eb'}` };
+
                 return (
-                  <div key={cls.id} className="premium-card" style={{display:'flex', flexDirection:'column', height:'100%', borderTop: `4px solid ${isRejected?'#ef4444':isPending?'#eab308':'#2563eb'}`}}>
-                    <div style={{display:'flex', justifyContent:'space-between', marginBottom:'15px'}}>
+                  <div key={cls.id} className="premium-card" style={borderStyle}>
+                    <div className="card-header">
                         <span className={`badge ${cls.status}`}>{cls.status}</span>
-                        {!isRejected && !isPending && <span style={{fontSize:'11px', fontWeight:'600', color: isExpired?'#ef4444':'#16a34a'}}>{isExpired ? 'Expired' : `${daysLeft} Days Left`}</span>}
+                        {!isRejected && !isPending && (
+                            <span className={`days-left ${isExpired ? 'expired' : ''}`}>
+                                {isExpired ? 'Expired' : `${daysLeft} Days Left`}
+                            </span>
+                        )}
                     </div>
-                    <h3 style={{fontSize:'17px', margin:'0 0 5px 0'}}>{cls.course_name}</h3>
-                    <p style={{fontSize:'13px', color:'#64748b', margin:'0 0 20px 0'}}>{cls.batch_name}</p>
+                    <h3 className="card-title">{cls.course_name}</h3>
+                    <p className="card-subtitle">{cls.batch_name}</p>
                     
-                    <div style={{marginTop:'auto'}}>
+                    <div className="card-footer">
                       {isRejected ? (
-                        <button disabled style={{width:'100%', padding:'10px', background:'#f1f5f9', color:'#94a3b8', border:'none', borderRadius:'8px'}}>Access Revoked</button>
+                        <button disabled className="action-btn revoked">Access Revoked</button>
                       ) : isPending ? (
-                        <button disabled style={{width:'100%', padding:'10px', background:'#fffbeb', color:'#d97706', border:'none', borderRadius:'8px'}}>Verification Pending</button>
+                        <button disabled className="action-btn pending">Verification Pending</button>
                       ) : isExpired ? (
-                        <button onClick={() => handleRenew(cls.batch_id)} style={{width:'100%', padding:'10px', background:'#ef4444', color:'white', border:'none', borderRadius:'8px', fontWeight:'bold'}}>Renew Now</button>
+                        <button onClick={() => handleRenew(cls.batch_id)} className="action-btn renew">Renew Now</button>
                       ) : (
-                        <button onClick={() => handleEnterClass(cls.batch_id, cls.course_name, cls.expire_date, cls.status)} style={{width:'100%', padding:'10px', background:'#2563eb', color:'white', border:'none', borderRadius:'8px', fontWeight:'bold'}}>Enter Class</button>
+                        <button onClick={() => handleEnterClass(cls.batch_id, cls.course_name, cls.expire_date, cls.status)} className="action-btn enter">Enter Class</button>
                       )}
                     </div>
                   </div>
@@ -169,42 +185,39 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
           </div>
         )}
 
-        {/* 3. PAYMENT (UPDATED LIST VIEW) */}
+        {/* 3. PAYMENT TAB */}
         {activeTab === 'payment' && (
           <div>
-            <h2 style={{fontSize:'22px', fontWeight:'700', marginBottom:'20px'}}>Manage Payments</h2>
+            <h2 className="welcome-title">Manage Payments</h2>
             <div style={{maxWidth:'600px', margin:'0 auto'}}>
                 <OnlinePayment student={student} onPaymentSuccess={refreshData} preSelectedBatch={renewBatchId || preSelectedBatch} />
             </div>
             
-            <h3 style={{marginTop:'40px', marginBottom:'15px'}}>Payment History</h3>
+            <h3 className="section-title">Payment History</h3>
             
-            {/* NEW LIST VIEW instead of Table */}
             <div className="history-list">
                 {payments.map(p => (
                     <div key={p.id} className="history-card" onClick={() => setSelectedPayment(p)}>
                         <div className="history-info">
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
-                                {/* Transaction ID & Date shown here */}
                                 <span className="history-id">#{p.transaction_id || '....'}</span>
-                                <span style={{fontSize:'11px'}}>• {new Date(p.payment_date).toLocaleDateString()}</span>
+                                <span>• {new Date(p.payment_date).toLocaleDateString()}</span>
                             </div>
                         </div>
                         <div style={{textAlign:'right'}}>
-                            {/* Status Badge */}
                             <span className={`badge ${p.status}`}>{p.status}</span>
-                            <div style={{fontSize:'10px', color:'#94a3b8', marginTop:'4px'}}>Click for details</div>
+                            <div className="click-hint">View details</div>
                         </div>
                     </div>
                 ))}
-                {payments.length === 0 && <div className="premium-card" style={{textAlign:'center', color:'#64748b'}}>No transaction history found.</div>}
+                {payments.length === 0 && <div className="premium-card no-data">No transaction history found.</div>}
             </div>
           </div>
         )}
 
-        {activeTab === 'exams' && <div className="premium-card"><h2 style={{marginBottom:'20px'}}>Exam Results</h2><ExamList exams={exams} /></div>}
-        {activeTab === 'profile' && <div style={{maxWidth:'600px', margin:'0 auto'}}><h2 style={{marginBottom:'20px'}}>My Profile</h2><StudentCard student={student} onUpdate={refreshData} /></div>}
+        {activeTab === 'exams' && <div className="premium-card"><h2 className="welcome-title">Exam Results</h2><ExamList exams={exams} /></div>}
+        {activeTab === 'profile' && <div style={{maxWidth:'600px', margin:'0 auto'}}><h2 className="welcome-title">My Profile</h2><StudentCard student={student} onUpdate={refreshData} /></div>}
 
       </div>
 
@@ -258,11 +271,12 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
 
                     {selectedPayment.receipt_image && (
                         <div className="pm-receipt-box">
-                            <p style={{fontSize:'12px', marginBottom:'8px'}}>Uploaded Screenshot:</p>
+                            <p style={{fontSize:'12px', marginBottom:'8px', color:'#64748b'}}>Uploaded Screenshot:</p>
                             <img 
                                 src={`https://myanedu-backend.onrender.com/${selectedPayment.receipt_image}`} 
                                 alt="Receipt" 
                                 className="pm-receipt-img"
+                                onError={(e) => e.target.style.display = 'none'}
                             />
                         </div>
                     )}

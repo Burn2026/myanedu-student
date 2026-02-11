@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './Instructors.css';
 
 function Instructors() {
   const [teachers, setTeachers] = useState([]);
