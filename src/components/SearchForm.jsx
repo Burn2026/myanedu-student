@@ -21,7 +21,11 @@ function SearchForm({ onLoginSuccess }) {
       const data = await response.json();
 
       if (response.ok) {
-        // Login အောင်မြင်ရင် App.jsx ကို ဖုန်းနံပါတ်ပြန်ပေးမယ်
+        // ✅ အရေးကြီး: Login ဝင်တာနဲ့ Data အကုန်သိမ်းပါ (App.jsx က ပြန်မရှာရအောင်)
+        localStorage.setItem('studentAuth', JSON.stringify(data.user)); 
+        localStorage.setItem('studentPhone', phone);
+        
+        // App.jsx ကို အသိပေးမည်
         onLoginSuccess(phone); 
       } else {
         setError(data.message || "Login Failed");

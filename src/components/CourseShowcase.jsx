@@ -6,11 +6,25 @@ function CourseShowcase({ onRegisterClick }) {
   useEffect(() => {
     fetch('https://myanedu-backend.onrender.com/public/promo-courses')
       .then(res => res.json())
-      .then(data => setCourses(data))
-      .catch(err => console.error(err));
+      .then(data => {
+        // Backend က Array မဟုတ်ဘဲ Error ပြန်လာရင် စစ်မယ်
+        if (Array.isArray(data)) {
+            setCourses(data);
+        } else {
+            console.error("Invalid data format:", data);
+            setCourses([]); // Array မဟုတ်ရင် ဘာမှမပြဘူး
+        }
+      })
+      .catch(err => {
+          console.error(err);
+          setCourses([]);
+      });
   }, []);
 
   const getIcon = (title) => {
+    // Safety Check: Title မရှိရင် (သို့) undefined ဖြစ်နေရင် စာအုပ်ပုံပဲ ပြမယ် (Error မတက်အောင် ကာကွယ်ခြင်း)
+    if (!title) return '📚';
+
     if (title.includes('English')) return '🇬🇧';
     if (title.includes('Japanese')) return '🇯🇵';
     if (title.includes('Korean')) return '🇰🇷';
@@ -26,37 +40,41 @@ function CourseShowcase({ onRegisterClick }) {
       </div>
       
       <div className="promo-grid">
-        {courses.map((course) => (
-          <div key={course.id} className="promo-card" style={{ opacity: course.is_full ? 0.8 : 1 }}>
-            
-            <div className={`status-badge-corner ${course.is_full ? 'status-full' : 'status-open'}`}>
-              {course.is_full ? 'CLOSED' : 'OPEN'}
+        {courses.length > 0 ? (
+            courses.map((course) => (
+            <div key={course.id} className="promo-card" style={{ opacity: course.is_full ? 0.8 : 1 }}>
+                
+                <div className={`status-badge-corner ${course.is_full ? 'status-full' : 'status-open'}`}>
+                {course.is_full ? 'CLOSED' : 'OPEN'}
+                </div>
+
+                <div className="course-img-placeholder">
+                {/* ဒီနေရာမှာ course_name (သို့) title လို့ Backend ကလာတဲ့ နာမည်အတိုင်းထည့်ပါ */}
+                {getIcon(course.course_name || course.title)}
+                </div>
+
+                <h3 className="promo-course-title">{course.course_name || course.title}</h3>
+                <p className="promo-batch">{course.batch_name}</p>
+
+                {!course.is_full && (
+                    <div className="seats-info">🔥 {course.seats_left || 0} seats left</div>
+                )}
+                {course.is_full && (
+                    <div className="seats-info" style={{color: '#ef4444'}}>⛔ Fully Booked</div>
+                )}
+
+                <button 
+                className={`promo-btn ${course.is_full ? 'btn-full' : 'btn-register'}`}
+                onClick={() => !course.is_full && onRegisterClick(course.id)} 
+                disabled={course.is_full}
+                >
+                {course.is_full ? "လူပြည့်သွားပါပြီ" : "ယခု စာရင်းသွင်းမည်"}
+                </button>
             </div>
-
-            <div className="course-img-placeholder">
-              {getIcon(course.course_name)}
-            </div>
-
-            <h3 className="promo-course-title">{course.course_name}</h3>
-            <p className="promo-batch">{course.batch_name}</p>
-
-            {!course.is_full && (
-               <div className="seats-info">🔥 {course.seats_left} seats left</div>
-            )}
-            {course.is_full && (
-               <div className="seats-info" style={{color: '#ef4444'}}>⛔ Fully Booked</div>
-            )}
-
-            <button 
-              className={`promo-btn ${course.is_full ? 'btn-full' : 'btn-register'}`}
-              // (ပြင်ဆင်ချက်) အတန်း ID ကိုပါ onRegisterClick ထဲ ထည့်ပေးလိုက်သည်
-              onClick={() => !course.is_full && onRegisterClick(course.id)} 
-              disabled={course.is_full}
-            >
-              {course.is_full ? "လူပြည့်သွားပါပြီ" : "ယခု စာရင်းသွင်းမည်"}
-            </button>
-          </div>
-        ))}
+            ))
+        ) : (
+            <p style={{textAlign: 'center', color: '#666'}}>သင်တန်းများ ရှာဖွေနေပါသည်...</p>
+        )}
       </div>
     </div>
   );
