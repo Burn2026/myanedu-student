@@ -12,12 +12,12 @@ body {
 
 /* --- Main Container Fix --- */
 .container {
-  max-width: 1200px; /* Dashboard အတွက် အကျယ်ချဲ့ထားသည် */
-  /* Navbar Fixed ဖြစ်နေလို့ Content တွေကို အောက်ချပေးရပါမယ် (120px) */
-  margin: 120px auto 40px auto; 
+  max-width: 1200px;
+  /* Navbar Fixed ဖြစ်နေလို့ Content တွေကို အောက်ချပေးရပါမယ် */
+  margin: 100px auto 40px auto; 
   padding: 0 20px;
   position: relative;
-  z-index: 1; /* Navbar အောက်ရောက်နေစေရန် */
+  z-index: 1;
 }
 
 h1 {
@@ -123,32 +123,6 @@ th {
   color: #166534;
 }
 
-/* --- Mobile Responsiveness --- */
-@media (max-width: 600px) {
-  .container {
-    margin-top: 100px;
-    padding: 0 15px;
-  }
-
-  h1 {
-    font-size: 1.8rem;
-  }
-
-  .search-box {
-    flex-direction: column;
-  }
-  
-  .search-input, 
-  .search-btn {
-    width: 100%;
-    border-radius: 8px !important;
-  }
-  
-  .search-btn {
-    margin-top: 10px;
-  }
-}
-
 /* --- Premium Success Modal --- */
 .modal-overlay {
   position: fixed;
@@ -160,7 +134,7 @@ th {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000; /* Navbar အပေါ်ရောက်ရန် */
+  z-index: 2000;
   backdrop-filter: blur(3px); 
 }
 
@@ -374,12 +348,6 @@ th {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-}
-
-@media (max-width: 600px) {
-  .auth-options-grid {
-    grid-template-columns: 1fr; 
-  }
 }
 
 .auth-option-card {
@@ -679,14 +647,13 @@ th {
   display: flex;
   justify-content: center;
   align-items: center;
-  /* (FIXED) Navbar ကို အမြင့်ဆုံး Layer မှာထားသည် */
   z-index: 1000;
   transition: all 0.3s ease;
 }
 
 .nav-container {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1200px;
   padding: 0 20px;
   display: flex;
   justify-content: space-between;
@@ -707,7 +674,7 @@ th {
 .nav-links {
   display: flex;
   gap: 25px;
-  align-items: center; /* Bell Icon နဲ့ Profile တစ်တန်းတည်းထားရန် */
+  align-items: center; 
 }
 
 .nav-link {
@@ -723,35 +690,6 @@ th {
   color: #2563eb;
 }
 
-.nav-btn-logout {
-  padding: 8px 16px;
-  background-color: #fee2e2;
-  color: #ef4444;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.nav-btn-logout:hover {
-  background-color: #fecaca;
-}
-
-/* Mobile Responsive Navbar */
-@media (max-width: 600px) {
-  .nav-links {
-    gap: 15px;
-  }
-  .nav-link {
-    font-size: 12px;
-  }
-  .nav-logo {
-    font-size: 16px;
-  }
-}
-
 /* --- Student Dashboard Layout --- */
 .dashboard-layout {
   display: flex;
@@ -761,7 +699,7 @@ th {
   overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   margin-top: 20px;
-  position: relative; /* Fixed: Dashboard Content Navbar အောက်မဝင်အောင် */
+  position: relative;
   z-index: 0;
 }
 
@@ -850,7 +788,7 @@ th {
   margin-bottom: 25px;
 }
 
-/* Stats Cards (Overview) */
+/* Stats Cards */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -892,29 +830,97 @@ th {
   font-weight: bold;
 }
 
-/* Mobile Responsive */
+/* ========================================= */
+/* 📱 NEW: Responsive / Mobile Styles        */
+/* ========================================= */
+
+.mobile-only {
+  display: none;
+}
+
+/* Tablet & Mobile Breakpoint (768px and below) */
 @media (max-width: 768px) {
+  /* Hide Desktop Elements */
+  .desktop-only {
+    display: none !important;
+  }
+  
+  /* Show Mobile Elements */
+  .mobile-only {
+    display: block !important;
+  }
+
+  .nav-container {
+    padding: 10px 20px !important;
+  }
+  
+  .responsive-title {
+    font-size: 1.8rem !important;
+  }
+
+  /* Adjust Search Box for Mobile */
+  .search-box {
+    flex-direction: column;
+  }
+  
+  .search-input, 
+  .search-btn {
+    width: 100%;
+    border-radius: 8px !important;
+  }
+  
+  .search-btn {
+    margin-top: 10px;
+  }
+
+  /* Auth Modal Mobile Fix */
+  .auth-modal-box {
+    width: 90% !important;
+    padding: 25px !important;
+  }
+  
+  .auth-options-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dashboard Mobile Adjustments */
   .dashboard-layout {
     flex-direction: column;
   }
+  
   .dashboard-sidebar {
     width: 100%;
     flex-direction: row;
     align-items: center;
     padding: 15px;
-    gap: 20px;
-    overflow-x: auto;
+    gap: 15px;
+    overflow-x: auto; /* Horizontal Scroll for Menu */
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
   }
+
   .sidebar-profile {
-    display: none; 
+    display: none; /* Hide large profile on mobile sidebar */
   }
+
   .sidebar-menu {
     flex-direction: row;
     width: 100%;
   }
+
   .menu-item {
     white-space: nowrap;
-    padding: 10px;
-    font-size: 14px;
+    padding: 8px 12px;
+    font-size: 13px;
+    background: #f8fafc;
+  }
+  
+  .menu-item.active {
+    background-color: #2563eb;
+    color: white;
+  }
+
+  .dashboard-content {
+    padding: 15px;
   }
 }

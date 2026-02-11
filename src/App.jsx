@@ -22,12 +22,21 @@ function App() {
   const [targetBatchId, setTargetBatchId] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // --- (New) Page Load ဖြစ်တာနဲ့ Login စစ်ဆေးခြင်း ---
+  // --- (Updated) Page Load ဖြစ်တာနဲ့ Login စစ်ဆေးခြင်း ---
   useEffect(() => {
+    // အရင်က ဖုန်းနံပါတ်တစ်ခုတည်း စစ်ရာမှ၊ အခု User Object ရှိမရှိပါ စစ်ပါမယ်
     const savedPhone = localStorage.getItem('studentPhone');
+    const savedAuth = localStorage.getItem('studentAuth');
+
     if (savedPhone) {
         setPhone(savedPhone);
-        fetchAllData(savedPhone); // ဖုန်းနံပါတ်ရှိရင် Data ချက်ချင်းပြန်ဆွဲမယ်
+        
+        // LocalStorage မှာ Data အပြည့်အစုံရှိရင် State ထဲ ချက်ချင်းထည့်မယ် (Loading မကြာအောင်)
+        if(savedAuth) {
+            setStudent(JSON.parse(savedAuth));
+        }
+
+        fetchAllData(savedPhone); // Server ကနေ နောက်ဆုံး Data ပြန်ဆွဲမယ်
     }
   }, []);
 
@@ -38,13 +47,15 @@ function App() {
         const studentRes = await fetch(`https://myanedu-backend.onrender.com/students/search?phone=${phoneNum}`);
         if (!studentRes.ok) {
           // Data မတွေ့ရင် LocalStorage ပါ ရှင်းပစ်မယ် (Logout သဘောမျိုး)
-          localStorage.removeItem('studentPhone');
-          setStudent(null);
+          handleLogout();
           setError("Session Expired. Please login again.");
           return;
         }
         const studentData = await studentRes.json();
         setStudent(studentData); 
+        
+        // (New) နောက်ဆုံးရလာတဲ့ Data ကို LocalStorage မှာ Update လုပ်မယ်
+        localStorage.setItem('studentAuth', JSON.stringify(studentData));
 
         // ကျန် Data များ ဆက်ဆွဲမယ်
         const paymentRes = await fetch(`https://myanedu-backend.onrender.com/students/payments?phone=${phoneNum}`);
@@ -56,27 +67,25 @@ function App() {
         setExams(examData);
 
       } catch (err) {
+        console.error(err);
         setError("Connection Error. Server ကို မချိတ်ဆက်နိုင်ပါ");
       } finally {
         setLoading(false); 
       }
   };
 
-  // Login အောင်မြင်ပါက
+  // Login အောင်မြင်ပါက (SearchForm မှ ခေါ်မည်)
   const handleLoginSuccess = (loggedInPhone) => {
-    // (New) Browser ထဲ မှတ်ထားမည်
+    // ⚠️ Note: SearchForm ကနေ phone ပဲပါလာရင် fetchAllData ကနေ studentAuth ကို ဖြည့်ပေးပါလိမ့်မယ်
     localStorage.setItem('studentPhone', loggedInPhone);
-    
     setPhone(loggedInPhone);
     setError(""); 
     fetchAllData(loggedInPhone);
   };
 
-  // Register အောင်မြင်ပါက
+  // Register အောင်မြင်ပါက (PublicRegister မှ ခေါ်မည်)
   const handleRegisterSuccess = (registeredPhone) => {
-    // (New) Browser ထဲ မှတ်ထားမည်
     localStorage.setItem('studentPhone', registeredPhone);
-
     setView('search');
     setPhone(registeredPhone);
     fetchAllData(registeredPhone);
@@ -84,19 +93,22 @@ function App() {
 
   // Logout လုပ်ပါက
   const handleLogout = () => {
-    // (New) Browser ထဲကပါ ဖျက်မည်
+    // (Updated) Browser ထဲက Data အကုန်ဖျက်မည်
     localStorage.removeItem('studentPhone');
+    localStorage.removeItem('studentAuth'); // ဒါလေး အရေးကြီးပါတယ်
 
     setStudent(null);
     setPhone("");
     setPayments([]);
     setExams([]);
     setView('search');
+    window.location.reload(); // State ရှင်းဖို့ Refresh လုပ်လိုက်တာ ပိုစိတ်ချရပါတယ်
   };
 
   const handleNavigate = (section) => {
     if (section === 'home') {
        window.scrollTo({ top: 0, behavior: 'smooth' });
+       if(!student) setView('search'); // Home နှိပ်ရင် Search View ပြန်ပြမယ်
     } else {
        const element = document.getElementById(section);
        if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -126,12 +138,12 @@ function App() {
 
       {loading && <LoadingSpinner />}
 
-      <div className="container" style={{ maxWidth: '1200px', marginTop: '100px', flex: 1 }}>
+      <div className="container" style={{ maxWidth: '1200px', marginTop: '80px', flex: 1, padding: '20px' }}>
         
         {/* Header Title (Login မဝင်ရသေးမှ ပြမည်) */}
         {!student && (
           <div style={{ textAlign: 'center', marginBottom: '40px' }} id="home">
-            <h1 style={{ color: '#2563eb', marginBottom: '10px' }}>Myanmar Education Portal</h1>
+            <h1 className="responsive-title" style={{ color: '#2563eb', marginBottom: '10px' }}>Myanmar Education Portal</h1>
             <p style={{ color: '#6b7280' }}>
                 {view === 'search' ? "မိမိ၏ ကျောင်းအပ်နှံမှု အခြေအနေကို စစ်ဆေးပါ" : "ကျောင်းသားသစ် စာရင်းသွင်းရန်"}
             </p>
