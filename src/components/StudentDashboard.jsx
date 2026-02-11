@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './StudentDashboard.css';
+import './StudentDashboard.css'; 
 import StudentCard from './StudentCard';
 import OnlinePayment from './OnlinePayment';
 import ExamList from './ExamList';
@@ -12,12 +12,20 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   const [renewBatchId, setRenewBatchId] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
-  // 🔒 SECURITY FIX: Production တွင် Console Log မပြအောင် ဖယ်ရှားလိုက်ပါ သို့မဟုတ် Comment ပိတ်ထားပါ
-  // useEffect(() => {
-  //   if (process.env.NODE_ENV === 'development') {
-  //       console.log("Payment Data:", payments);
-  //   }
-  // }, [payments]);
+  // ✅ (1) ငွေလက်ခံမည့် ဖုန်းနံပါတ် Mapping (OnlinePayment.jsx နှင့် တူညီရမည်)
+  const accountInfo = {
+    "KPay": "09123456789 (U Kyaw Kyaw)",
+    "Wave": "09987654321 (Daw Mya Mya)",
+    "CB": "001122334455 (U Ba Maung)"
+  };
+
+  // --- DEBUGGING ---
+  useEffect(() => {
+    if (payments.length > 0) {
+        // Console တွင် Data စစ်ဆေးရန် (Production တွင် ပိတ်ထားနိုင်သည်)
+        // console.log("🔥 Payment Data:", payments);
+    }
+  }, [payments]);
 
   // Stats Logic
   const activePayments = payments.filter(p => p.status === 'verified');
@@ -32,19 +40,20 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
   };
 
-  // Helper to safely get an ID to display
+  // ✅ (2) Transaction ID မှန်ကန်စွာပြသခြင်း Logic
   const getDisplayID = (payment) => {
-    // 🔒 SECURITY: Ensure output is always a string to prevent injection
-    const tID = payment.transaction_id || payment.trans_id || payment.tid || payment.receipt_no || payment.ref_no;
-    
+    // Backend မှ လာနိုင်သော နာမည်ကွဲများ
+    const tID = payment.transaction_id || payment.trans_id || payment.tid;
+
+    // Transaction ID အစစ်ရှိလျှင် ပြမည်
     if (tID && String(tID) !== "null" && String(tID) !== "") {
-        return String(tID); 
+        return String(tID);
     }
+    // မရှိလျှင် System ID (#123) ပြမည်
     return `#${payment.id}`;
   };
 
   const handleEnterClass = (batchId, courseName, expireDate, status) => {
-    // 🔒 NOTE: Backend API must also verify this, not just frontend
     if (status !== 'verified') return alert("Access Denied: Payment pending or rejected.");
     if (getDaysRemaining(expireDate) <= 0) return alert("Subscription Expired! Please renew.");
     setSelectedClass({ id: batchId, name: courseName });
@@ -65,7 +74,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     
     doc.setTextColor(0, 0, 0); doc.setFontSize(12);
     
-    // Receipt ID Display
     doc.text(`Receipt ID: ${getDisplayID(payment)}`, 20, 60);
     doc.text(`Date: ${new Date(payment.payment_date).toLocaleDateString()}`, 150, 60);
     
@@ -135,7 +143,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
                                 <span>{new Date(p.payment_date).toLocaleDateString()}</span>
-                                <span className="history-id" style={{fontWeight:'bold'}}>
+                                <span className="history-id">
                                     {getDisplayID(p)}
                                 </span>
                             </div>
@@ -195,6 +203,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <div className="history-info">
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
+                                {/* Display Transaction ID here */}
                                 <span className="history-id" style={{fontWeight:'bold'}}>
                                     {getDisplayID(p)}
                                 </span>
@@ -225,7 +234,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
          ))}
       </div>
 
-      {/* PAYMENT MODAL */}
+      {/* --- PAYMENT DETAIL MODAL (Updated) --- */}
       {selectedPayment && (
         <div className="payment-modal-overlay" onClick={() => setSelectedPayment(null)}>
             <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
@@ -244,34 +253,49 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <span className="pm-label">Status</span>
                         <span className={`badge ${selectedPayment.status}`}>{selectedPayment.status.toUpperCase()}</span>
                     </div>
+                    
+                    {/* ✅ (2) Transaction ID */}
                     <div className="pm-row">
                         <span className="pm-label">Transaction ID</span>
-                        <span className="pm-value" style={{fontFamily: 'monospace', fontWeight: 'bold'}}>
+                        <span className="pm-value" style={{fontFamily: 'monospace', fontWeight: 'bold', color: '#2563eb'}}>
                             {getDisplayID(selectedPayment)}
                         </span>
                     </div>
+
+                    {/* ✅ (3) ငွေလွှဲလက်ခံမည့် ဖုန်းနံပါတ် (Transfer To) */}
+                    <div className="pm-row">
+                        <span className="pm-label">Transfer To</span>
+                        <span className="pm-value">
+                            {accountInfo[selectedPayment.payment_method] || selectedPayment.payment_method}
+                        </span>
+                    </div>
+
                     <div className="pm-row">
                         <span className="pm-label">Date</span>
                         <span className="pm-value">{new Date(selectedPayment.payment_date).toLocaleString()}</span>
                     </div>
-                    <div className="pm-row">
-                        <span className="pm-label">Method</span>
-                        <span className="pm-value">{selectedPayment.payment_method}</span>
-                    </div>
 
-                    {selectedPayment.receipt_image && (
+                    {/* ✅ (4) Receipt Image Display */}
+                    {selectedPayment.receipt_image ? (
                         <div className="pm-receipt-box">
                             <p style={{fontSize:'12px', marginBottom:'8px', color:'#64748b'}}>Uploaded Screenshot:</p>
-                            <img 
-                                src={`https://myanedu-backend.onrender.com/${selectedPayment.receipt_image}`} 
-                                alt="Receipt" 
-                                className="pm-receipt-img"
-                                // 🔒 SECURITY FIX: Do not use innerHTML here. Just hide the broken image.
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    // Removed insecure innerHTML injection
-                                }}
-                            />
+                            {/* Link to open full image */}
+                            <a href={`https://myanedu-backend.onrender.com/${selectedPayment.receipt_image}`} target="_blank" rel="noopener noreferrer">
+                                <img 
+                                    src={`https://myanedu-backend.onrender.com/${selectedPayment.receipt_image}`} 
+                                    alt="Receipt" 
+                                    className="pm-receipt-img"
+                                    style={{border: '1px solid #e2e8f0', cursor: 'zoom-in'}}
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.parentNode.innerHTML += `<span style="color:red; font-size:12px; display:block; padding:10px;">Unable to load image</span>`;
+                                    }}
+                                />
+                            </a>
+                        </div>
+                    ) : (
+                        <div className="pm-receipt-box" style={{color: '#94a3b8', fontStyle: 'italic'}}>
+                            No screenshot uploaded
                         </div>
                     )}
                 </div>
