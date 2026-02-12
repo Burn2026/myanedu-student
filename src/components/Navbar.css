@@ -9,19 +9,35 @@
 .nav-container {
   width: 100%; max-width: 1200px; padding: 0 20px;
   display: flex; justify-content: space-between; align-items: center;
+  box-sizing: border-box;
 }
 
 .nav-logo { cursor: pointer; display: flex; align-items: center; gap: 8px; }
 .nav-logo-text { font-weight: 800; fontSize: 18px; color: #2563eb; }
 
-.desktop-menu { display: flex; align-items: center; gap: 20px; }
-.mobile-hamburger { display: none; font-size: 24px; cursor: pointer; }
+/* Right Side Actions Container (Bell + Menu) */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Icon များကြား အကွာအဝေး */
+}
 
-/* Mobile Dropdown */
-.mobile-dropdown {
-  position: fixed; top: 70px; left: 0; right: 0;
-  background: white; border-bottom: 1px solid #e2e8f0;
-  padding: 20px; z-index: 1999; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+.desktop-menu { display: flex; align-items: center; }
+.mobile-hamburger { display: none; font-size: 24px; cursor: pointer; padding: 5px; margin-left: 5px; }
+
+/* Notification Dropdown Box Styling */
+.noti-dropdown-box {
+  position: absolute; 
+  top: 55px; 
+  right: -60px; /* Desktop အတွက် နေရာချထားမှု */
+  width: 300px; 
+  background: white; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 12px; 
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+  z-index: 2001; 
+  max-height: 350px; 
+  overflow-y: auto;
 }
 
 .nav-btn-logout {
@@ -29,9 +45,31 @@
   padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;
 }
 
-@media (max-width: 768px) {
-  .desktop-menu { display: none; }
-  .mobile-hamburger { display: block; }
+/* Mobile Dropdown (Hamburger Content) */
+.mobile-dropdown {
+  position: fixed; top: 70px; left: 0; right: 0;
+  background: white; border-bottom: 1px solid #e2e8f0;
+  padding: 20px; z-index: 1999; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 900px) {
   .navbar { height: 60px; }
+  .nav-container { padding: 0 15px; }
+  
+  .desktop-menu { display: none; } /* User info & Logout button hidden on bar */
+  .mobile-hamburger { display: block; } /* Show Hamburger */
   .mobile-dropdown { top: 60px; }
+  
+  /* Mobile မှာ Noti Box နေရာမလွဲအောင် */
+  .noti-dropdown-box {
+    right: -50px; /* ညာဘက်အစွန်းနှင့် ညီအောင်ညှိခြင်း */
+    width: 280px;
+  }
 }
