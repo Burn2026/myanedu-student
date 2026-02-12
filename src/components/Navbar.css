@@ -13,7 +13,11 @@
 }
 
 .nav-logo { cursor: pointer; display: flex; align-items: center; gap: 8px; }
-.nav-logo-text { font-weight: 800; fontSize: 18px; color: #2563eb; }
+.nav-logo-text { 
+  font-weight: 800; 
+  font-size: 18px; /* fontSize ကို font-size လို့ ပြင်ပါ */
+  color: #2563eb; 
+}
 
 /* Right Side Actions Container (Bell + Menu) */
 .nav-actions {
