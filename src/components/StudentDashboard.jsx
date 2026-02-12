@@ -10,31 +10,59 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   const [activeTab, setActiveTab] = useState(preSelectedBatch ? 'payment' : 'overview');
   const [selectedClass, setSelectedClass] = useState(null); 
   const [renewBatchId, setRenewBatchId] = useState(null);
-  
-  // Payment Detail Modal အတွက် State
   const [selectedPayment, setSelectedPayment] = useState(null);
-  
-  // ✅ (NEW) ဓာတ်ပုံအကြီးချဲ့ကြည့်ရန် State အသစ်
   const [previewImage, setPreviewImage] = useState(null);
 
-  // ငွေလက်ခံမည့် ဖုန်းနံပါတ် Mapping
+  // Phone Mapping
   const accountInfo = {
     "KPay": "09123456789 (U Kyaw Kyaw)",
     "Wave": "09987654321 (Daw Mya Mya)",
     "CB": "001122334455 (U Ba Maung)"
   };
 
-  useEffect(() => {
-    if (payments.length > 0) {
-        // console.log("🔥 Payment Data:", payments);
-    }
-  }, [payments]);
+  // --- LOGIC 1: Filter & Merge Active Classes ---
+  // Verified ဖြစ်ပြီးသားများကိုသာ ယူမည်၊ တူညီသော Course/Batch ဖြစ်ပါက ရက်ပေါင်းထည့်မည်
+  const getUniqueActiveClasses = (allPayments) => {
+    // 1. Verified payments only
+    const verifiedPayments = allPayments.filter(p => p.status === 'verified');
+    
+    // 2. Group by Batch ID (or Course Name if needed)
+    const classMap = new Map();
 
+    verifiedPayments.forEach(p => {
+        const key = p.batch_id; // Batch ID တူရင် ပေါင်းမည်
+        
+        // Expiry Date တွက်ချက်ခြင်း
+        const expireDate = new Date(p.expire_date);
+        const now = new Date();
+        const daysLeft = Math.ceil((expireDate - now) / (1000 * 60 * 60 * 24));
+
+        if (classMap.has(key)) {
+            // ရှိပြီးသားဆိုရင် ရက်တွေ ထပ်ပေါင်းမယ် (အကယ်၍ လိုအပ်ရင် Logic ပြင်နိုင်သည်)
+            // လက်ရှိ Logic: နောက်ဆုံး expire_date ကိုပဲ ယူသုံးတာ ပိုမှန်ကန်လေ့ရှိပါတယ် (System က Auto တွက်ပေးထားလို့)
+            // သို့သော် UI မှာ ရက်ပေါင်းပြချင်ရင် ဒီနေရာမှာ Logic ထပ်ဖြည့်နိုင်ပါတယ်
+            
+            // For simplicity and accuracy based on most LMS:
+            // We usually take the entry with the FARTHEST expire date
+            const existing = classMap.get(key);
+            if (new Date(p.expire_date) > new Date(existing.expire_date)) {
+                classMap.set(key, p);
+            }
+        } else {
+            // အသစ်ဆိုရင် ထည့်မယ်
+            classMap.set(key, p);
+        }
+    });
+
+    return Array.from(classMap.values());
+  };
+
+  const activeClasses = getUniqueActiveClasses(payments); // For Classroom Tab
+  
   // Stats Logic
   const activePayments = payments.filter(p => p.status === 'verified');
   const totalPaid = activePayments.reduce((sum, p) => sum + Number(p.amount), 0);
   const totalCourses = new Set(activePayments.map(p => p.course_name)).size;
-  const allClasses = payments; 
 
   // Helpers
   const getDaysRemaining = (expireDate) => {
@@ -43,7 +71,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
   };
 
-  // Transaction ID Logic
   const getDisplayID = (payment) => {
     const tID = payment.transaction_id || payment.trans_id || payment.tid;
     if (tID && String(tID) !== "null" && String(tID) !== "") {
@@ -52,7 +79,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return `#${payment.id}`;
   };
 
-  // Image URL Helper
   const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith("http")) return path;
@@ -60,7 +86,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   };
 
   const handleEnterClass = (batchId, courseName, expireDate, status) => {
-    if (status !== 'verified') return alert("Access Denied: Payment pending or rejected.");
+    if (status !== 'verified') return alert("Access Denied.");
     if (getDaysRemaining(expireDate) <= 0) return alert("Subscription Expired! Please renew.");
     setSelectedClass({ id: batchId, name: courseName });
   };
@@ -148,9 +174,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
                                 <span>{new Date(p.payment_date).toLocaleDateString()}</span>
-                                <span className="history-id">
-                                    {getDisplayID(p)}
-                                </span>
+                                <span className="history-id">{getDisplayID(p)}</span>
                             </div>
                         </div>
                         <span className={`badge ${p.status}`}>{p.status}</span>
@@ -161,35 +185,38 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
           </div>
         )}
 
-        {/* CLASSROOM TAB */}
+        {/* CLASSROOM TAB (✅ UPDATED LOGIC) */}
         {activeTab === 'classroom' && (
           <div>
             <h2 className="welcome-title">My Classroom</h2>
             <div className="course-grid">
-              {allClasses.map(cls => {
-                const daysLeft = getDaysRemaining(cls.expire_date);
-                const isExpired = daysLeft <= 0;
-                const isRejected = cls.status === 'rejected';
-                const isPending = cls.status === 'pending';
-                const borderStyle = { borderTop: `4px solid ${isRejected ? '#ef4444' : isPending ? '#eab308' : '#2563eb'}` };
-
-                return (
-                  <div key={cls.id} className="premium-card" style={borderStyle}>
-                    <div className="card-header">
-                        <span className={`badge ${cls.status}`}>{cls.status}</span>
-                        {!isRejected && !isPending && <span className={`days-left ${isExpired ? 'expired' : ''}`}>{isExpired ? 'Expired' : `${daysLeft} Days Left`}</span>}
-                    </div>
-                    <h3 className="card-title">{cls.course_name}</h3>
-                    <p className="card-subtitle">{cls.batch_name}</p>
-                    <div className="card-footer">
-                      {isRejected ? <button disabled className="action-btn revoked">Access Revoked</button> : 
-                       isPending ? <button disabled className="action-btn pending">Verification Pending</button> :
-                       isExpired ? <button onClick={() => handleRenew(cls.batch_id)} className="action-btn renew">Renew Now</button> :
-                       <button onClick={() => handleEnterClass(cls.batch_id, cls.course_name, cls.expire_date, cls.status)} className="action-btn enter">Enter Class</button>}
-                    </div>
+              {activeClasses.length > 0 ? (
+                  activeClasses.map(cls => {
+                    const daysLeft = getDaysRemaining(cls.expire_date);
+                    const isExpired = daysLeft <= 0;
+                    
+                    return (
+                      <div key={cls.id} className="premium-card" style={{borderTop: `4px solid #2563eb`}}>
+                        <div className="card-header">
+                            <span className={`badge verified`}>VERIFIED</span>
+                            <span className={`days-left ${isExpired ? 'expired' : ''}`}>{isExpired ? 'Expired' : `${daysLeft} Days Left`}</span>
+                        </div>
+                        <h3 className="card-title">{cls.course_name}</h3>
+                        <p className="card-subtitle">{cls.batch_name}</p>
+                        <div className="card-footer">
+                          {isExpired ? 
+                             <button onClick={() => handleRenew(cls.batch_id)} className="action-btn renew">Renew Now</button> :
+                             <button onClick={() => handleEnterClass(cls.batch_id, cls.course_name, cls.expire_date, cls.status)} className="action-btn enter">Enter Class</button>
+                          }
+                        </div>
+                      </div>
+                    );
+                  })
+              ) : (
+                  <div className="premium-card no-data" style={{gridColumn: '1 / -1'}}>
+                      You have no active classes yet.
                   </div>
-                );
-              })}
+              )}
             </div>
           </div>
         )}
@@ -208,9 +235,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <div className="history-info">
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
-                                <span className="history-id" style={{fontWeight:'bold'}}>
-                                    {getDisplayID(p)}
-                                </span>
+                                <span className="history-id" style={{fontWeight:'bold'}}>{getDisplayID(p)}</span>
                                 <span>• {new Date(p.payment_date).toLocaleDateString()}</span>
                             </div>
                         </div>
@@ -220,7 +245,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         </div>
                     </div>
                 ))}
-                {payments.length === 0 && <div className="premium-card no-data">No transaction history found.</div>}
             </div>
           </div>
         )}
@@ -238,7 +262,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
          ))}
       </div>
 
-      {/* --- PAYMENT DETAIL MODAL --- */}
+      {/* PAYMENT MODAL */}
       {selectedPayment && (
         <div className="payment-modal-overlay" onClick={() => setSelectedPayment(null)}>
             <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
@@ -257,48 +281,37 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <span className="pm-label">Status</span>
                         <span className={`badge ${selectedPayment.status}`}>{selectedPayment.status.toUpperCase()}</span>
                     </div>
-                    
                     <div className="pm-row">
                         <span className="pm-label">Transaction ID</span>
                         <span className="pm-value" style={{fontFamily: 'monospace', fontWeight: 'bold', color: '#2563eb'}}>
                             {getDisplayID(selectedPayment)}
                         </span>
                     </div>
-
                     <div className="pm-row">
                         <span className="pm-label">Transfer To</span>
                         <span className="pm-value">
                             {accountInfo[selectedPayment.payment_method] || selectedPayment.payment_method}
                         </span>
                     </div>
-
                     <div className="pm-row">
                         <span className="pm-label">Date</span>
                         <span className="pm-value">{new Date(selectedPayment.payment_date).toLocaleString()}</span>
                     </div>
 
-                    {/* ✅ Receipt Image Display */}
                     {selectedPayment.receipt_image ? (
                         <div className="pm-receipt-box">
                             <p style={{fontSize:'12px', marginBottom:'8px', color:'#64748b'}}>Uploaded Screenshot (Click to zoom):</p>
-                            
-                            {/* 🔥 MODIFIED: Remove <a> tag, use onClick to open preview */}
                             <img 
                                 src={getImageUrl(selectedPayment.receipt_image)} 
                                 alt="Receipt" 
                                 className="pm-receipt-img"
                                 style={{border: '1px solid #e2e8f0', cursor: 'zoom-in', maxWidth: '100%'}}
-                                // ဓာတ်ပုံနှိပ်လိုက်ရင် State ထဲထည့်မယ်
                                 onClick={() => setPreviewImage(getImageUrl(selectedPayment.receipt_image))}
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                }}
+                                onError={(e) => { e.target.style.display = 'none'; }}
                             />
                         </div>
                     ) : (
-                        <div className="pm-receipt-box" style={{color: '#94a3b8', fontStyle: 'italic'}}>
-                            No screenshot uploaded
-                        </div>
+                        <div className="pm-receipt-box" style={{color: '#94a3b8', fontStyle: 'italic'}}>No screenshot uploaded</div>
                     )}
                 </div>
 
@@ -313,7 +326,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
         </div>
       )}
 
-      {/* ✅ (NEW) FULL SCREEN IMAGE PREVIEW MODAL (LIGHTBOX) */}
+      {/* LIGHTBOX PREVIEW */}
       {previewImage && (
         <div 
             style={{
@@ -322,7 +335,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                 display: 'flex', justifyContent: 'center', alignItems: 'center',
                 animation: 'fadeIn 0.2s ease-out'
             }}
-            onClick={() => setPreviewImage(null)} // Click background to close
+            onClick={() => setPreviewImage(null)}
         >
             <button 
                 onClick={() => setPreviewImage(null)}
@@ -343,7 +356,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                     objectFit: 'contain', borderRadius: '8px',
                     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
                 }}
-                onClick={(e) => e.stopPropagation()} // Click image won't close
+                onClick={(e) => e.stopPropagation()}
             />
         </div>
       )}
