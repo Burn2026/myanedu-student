@@ -1,32 +1,185 @@
 /* src/components/Classroom.css */
-.classroom-container {
-  display: flex; height: calc(100vh - 100px);
-  background: white; border-radius: 16px; overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+
+.classroom-wrapper {
+  padding: 10px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.video-section { flex: 1; padding: 25px; overflow-y: auto; background: #f8fafc; }
+.classroom-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* --- Video Section --- */
+.video-section {
+  flex: 1; /* Takes remaining space */
+  min-width: 0; /* Prevents overflow */
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.back-btn {
+  margin-bottom: 15px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
 
 .video-wrapper {
-  width: 100%; aspect-ratio: 16 / 9; background: black;
-  border-radius: 12px; overflow: hidden; margin-bottom: 20px;
+  width: 100%;
+  aspect-ratio: 16/9; /* Standard Video Ratio */
+  background-color: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
 }
-.video-player { width: 100%; height: 100%; object-fit: contain; }
 
+.video-player {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Keeps aspect ratio */
+}
+
+.lesson-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 10px;
+}
+
+.lesson-desc {
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.discussion-wrapper {
+  margin-top: 10px;
+}
+
+.loading-state, .no-lesson-state {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+  font-size: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+/* --- Playlist Sidebar --- */
 .playlist-sidebar {
-  width: 320px; border-left: 1px solid #e2e8f0; background: white;
-  overflow-y: auto; display: flex; flex-direction: column;
+  width: 350px; /* Fixed width on PC */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.playlist-header {
+  padding: 18px 20px;
+  background: #f8fafc;
+  font-weight: 700;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 16px;
+}
+
+.playlist-items {
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 .lesson-item {
-  padding: 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer;
-  display: flex; gap: 10px; align-items: start; transition: 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.2s;
 }
-.lesson-item:hover { background: #f8fafc; }
-.lesson-item.active { background: #eff6ff; border-left: 4px solid #2563eb; }
 
-@media (max-width: 900px) {
-  .classroom-container { flex-direction: column; height: auto; min-height: 80vh; }
-  .playlist-sidebar { width: 100%; height: 350px; border-left: none; border-top: 1px solid #e2e8f0; }
-  .video-section { padding: 15px; }
+.lesson-item:hover {
+  background: #f8fafc;
+}
+
+.lesson-item.active {
+  background: #eff6ff;
+  border-left: 4px solid #2563eb;
+}
+
+.lesson-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.lesson-number.active-num {
+  background: #2563eb;
+  color: white;
+}
+
+.lesson-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.lesson-item.active .lesson-name {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+/* =========================================
+   📱 MOBILE RESPONSIVE (iOS, Android, Tablets)
+   ========================================= */
+@media screen and (max-width: 992px) {
+  .classroom-container {
+    flex-direction: column; /* Stack video on top, playlist below */
+  }
+
+  .playlist-sidebar {
+    width: 100%; /* Full width on mobile */
+  }
+
+  .video-section {
+    padding: 15px;
+  }
+
+  .lesson-title {
+    font-size: 18px;
+  }
+  
+  .back-btn {
+      font-size: 13px;
+      padding: 6px 12px;
+  }
 }

@@ -8,51 +8,103 @@ function Classroom({ batchId, courseName, onBack, studentName }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`https://myanedu-backend.onrender.com/public/lessons?batch_id=${batchId}`)
-      .then(res => res.json())
+    // ✅ (FIXED) API လမ်းကြောင်းကို /students/lessons သို့ ပြောင်းထားပါသည်
+    fetch(`https://myanedu-backend.onrender.com/students/lessons?batch_id=${batchId}`)
+      .then(res => {
+          if (!res.ok) throw new Error("Failed to fetch lessons");
+          return res.json();
+      })
       .then(data => {
         setLessons(data);
         if (data.length > 0) setCurrentLesson(data[0]); 
         setLoading(false);
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+          console.error("Lesson Fetch Error:", err);
+          setLoading(false);
+      });
   }, [batchId]);
 
+  // ✅ (NEW) Video URL ကို Cloudinary သို့မဟုတ် Local အလိုအလျောက် ခွဲခြားပေးမည့် Function
+  const getVideoUrl = (path) => {
+    if (!path) return "";
+    let cleanPath = String(path).trim().replace(/\\/g, '/');
+    
+    // Cloudinary URL (http/https) ပါရင် တိုက်ရိုက်ယူမည်
+    const httpIndex = cleanPath.indexOf("http");
+    if (httpIndex !== -1) {
+        return cleanPath.substring(httpIndex);
+    }
+    
+    // Cloudinary URL ဖြစ်ပြီး http မပါခဲ့ရင်
+    if (cleanPath.includes("cloudinary.com")) {
+        cleanPath = cleanPath.replace(/^\/+/, ''); 
+        return `https://${cleanPath}`;
+    }
+    
+    // Local Server Path အတွက်
+    cleanPath = cleanPath.replace(/^\/+/, '');
+    return `https://myanedu-backend.onrender.com/${cleanPath}`;
+  };
+
   return (
-    <>  <div className="classroom-container">
-        {/* Left: Video */}
+    <div className="classroom-wrapper">
+      <div className="classroom-container">
+        
+        {/* Left/Top: Video Section */}
         <div className="video-section">
-             <button onClick={onBack} style={{marginBottom: '15px', background: 'none', border: '1px solid #cbd5e1', padding: '5px 10px', borderRadius: '6px', cursor: 'pointer'}}>← Back to Classes</button>
+             <button onClick={onBack} className="back-btn">
+                ← Back to Classes
+             </button>
              
-             {loading ? <p>Loading...</p> : currentLesson ? (
+             {loading ? (
+                 <div className="loading-state">Loading lessons...</div>
+             ) : currentLesson ? (
                <>
                  <div className="video-wrapper">
-                    <video controls className="video-player" key={currentLesson.video_url}>
-                       <source src={`https://myanedu-backend.onrender.com/${currentLesson.video_url}`} type="video/mp4" />
+                    {/* ✅ Video URL ကို Helper Function ဖြင့် ပြင်ဆင်ထားသည် */}
+                    <video controls className="video-player" key={currentLesson.video_url} controlsList="nodownload">
+                       <source src={getVideoUrl(currentLesson.video_url)} type="video/mp4" />
+                       Your browser does not support HTML video.
                     </video>
                  </div>
-                 <h2 style={{fontSize: '20px', marginBottom: '10px'}}>{currentLesson.title}</h2>
-                 <p style={{color: '#64748b', fontSize: '14px', lineHeight: '1.6'}}>{currentLesson.description}</p>
+                 <h2 className="lesson-title">{currentLesson.title}</h2>
+                 <p className="lesson-desc">{currentLesson.description}</p>
                  
-                 <DiscussionSection lessonId={currentLesson.id} studentName={studentName} />
+                 <div className="discussion-wrapper">
+                    <DiscussionSection lessonId={currentLesson.id} studentName={studentName} />
+                 </div>
                </>
-             ) : <p>No lessons available.</p>}
+             ) : (
+                 <div className="no-lesson-state">
+                     <p>No lessons available for this course yet.</p>
+                 </div>
+             )}
         </div>
 
-        {/* Right: Playlist */}
+        {/* Right/Bottom: Playlist Sidebar */}
         <div className="playlist-sidebar">
-            <div style={{padding: '15px', background: '#f8fafc', fontWeight: 'bold', borderBottom: '1px solid #e2e8f0'}}>
+            <div className="playlist-header">
                 Course Content ({lessons.length})
             </div>
-            {lessons.map((lesson, idx) => (
-                <div key={lesson.id} className={`lesson-item ${currentLesson?.id === lesson.id ? 'active' : ''}`} onClick={() => setCurrentLesson(lesson)}>
-                    <div style={{background: currentLesson?.id === lesson.id ? '#2563eb' : '#e2e8f0', color: currentLesson?.id === lesson.id ? 'white' : '#64748b', width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold'}}>{idx + 1}</div>
-                    <div style={{fontSize: '14px', fontWeight: '500'}}>{lesson.title}</div>
-                </div>
-            ))}
+            <div className="playlist-items">
+                {lessons.map((lesson, idx) => (
+                    <div 
+                        key={lesson.id} 
+                        className={`lesson-item ${currentLesson?.id === lesson.id ? 'active' : ''}`} 
+                        onClick={() => setCurrentLesson(lesson)}
+                    >
+                        <div className={`lesson-number ${currentLesson?.id === lesson.id ? 'active-num' : ''}`}>
+                            {idx + 1}
+                        </div>
+                        <div className="lesson-name">{lesson.title}</div>
+                    </div>
+                ))}
+            </div>
         </div>
+
       </div>
-    </>
+    </div>
   );
 }
 
