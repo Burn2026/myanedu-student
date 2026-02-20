@@ -33,23 +33,18 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   // --- LOGIC: Filter & Merge Active Classes ---
   // Verified ဖြစ်ပြီးသားများကိုသာ ယူမည်၊ တူညီသော Batch ID ဖြစ်ပါက ရက်ပေါင်းထည့်မည် (သက်တမ်းအကြာဆုံးကိုယူမည်)
   const getUniqueActiveClasses = (allPayments) => {
-    // 1. Verified payments only
     const verifiedPayments = allPayments.filter(p => p.status === 'verified');
-    
-    // 2. Group by Batch ID
     const classMap = new Map();
 
     verifiedPayments.forEach(p => {
-        const key = p.batch_id; // Batch ID တူရင် ပေါင်းမည်
+        const key = p.batch_id; 
         
         if (classMap.has(key)) {
-            // ရှိပြီးသားဆိုရင် သက်တမ်းပိုကြာတဲ့ expire_date ကို ယူမယ်
             const existing = classMap.get(key);
             if (new Date(p.expire_date) > new Date(existing.expire_date)) {
                 classMap.set(key, p);
             }
         } else {
-            // အသစ်ဆိုရင် ထည့်မယ်
             classMap.set(key, p);
         }
     });
@@ -57,13 +52,13 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return Array.from(classMap.values());
   };
 
-  const activeClasses = getUniqueActiveClasses(payments); // For Classroom Tab
+  const activeClasses = getUniqueActiveClasses(payments); 
 
   // Stats Logic
   const activePayments = payments.filter(p => p.status === 'verified');
   const totalPaid = activePayments.reduce((sum, p) => sum + Number(p.amount), 0);
   const totalCourses = new Set(activePayments.map(p => p.course_name)).size;
-  const allClasses = payments; // For history list
+  const allClasses = payments; 
 
   // Helpers
   const getDaysRemaining = (expireDate) => {
@@ -81,11 +76,23 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     return `#${payment.id}`;
   };
 
-  // Image URL Helper
+  // ✅ (CRITICAL FIX) Image URL Helper
   const getImageUrl = (path) => {
     if (!path) return null;
-    if (path.startsWith("http")) return path;
-    return `https://myanedu-backend.onrender.com/${path}`;
+    let cleanPath = String(path).trim();
+    
+    // Cloudinary URL (http) ပါဝင်နေရင် အဲ့ဒီ http ကနေစပြီး ဖြတ်ယူသုံးမယ်
+    // ဒါက "/https://res..." လိုမျိုး Slash အပိုပါလာတဲ့ ပြဿနာကို ဖြေရှင်းပေးပါတယ်
+    const httpIndex = cleanPath.indexOf("http");
+    if (httpIndex !== -1) {
+        return cleanPath.substring(httpIndex);
+    }
+    
+    // Local path အတွက် (e.g. uploads/image.jpg) Backend URL ခံပေးမယ်
+    if (cleanPath.startsWith('/')) {
+        cleanPath = cleanPath.substring(1);
+    }
+    return `https://myanedu-backend.onrender.com/${cleanPath}`;
   };
 
   const handleEnterClass = (batchId, courseName, expireDate, status) => {
@@ -190,7 +197,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
           </div>
         )}
 
-        {/* CLASSROOM TAB (✅ UPDATED: Only Show Verified & Unique Classes) */}
+        {/* CLASSROOM TAB */}
         {activeTab === 'classroom' && (
           <div>
             <h2 className="welcome-title">My Classroom</h2>
@@ -313,7 +320,6 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <div className="pm-receipt-box">
                             <p style={{fontSize:'12px', marginBottom:'8px', color:'#64748b'}}>Uploaded Screenshot (Click to zoom):</p>
                             
-                            {/* Click to open preview */}
                             <img 
                                 src={getImageUrl(selectedPayment.receipt_image)} 
                                 alt="Receipt" 
@@ -321,7 +327,9 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                                 style={{border: '1px solid #e2e8f0', cursor: 'zoom-in', maxWidth: '100%'}}
                                 onClick={() => setPreviewImage(getImageUrl(selectedPayment.receipt_image))}
                                 onError={(e) => {
+                                    console.error("Image Load Error:", e.target.src);
                                     e.target.style.display = 'none';
+                                    e.target.parentNode.innerHTML += `<span style="color:red; font-size:12px; display:block; padding:10px;">Unable to load image. Image might be deleted or path is broken.</span>`;
                                 }}
                             />
                         </div>
@@ -352,7 +360,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                 display: 'flex', justifyContent: 'center', alignItems: 'center',
                 animation: 'fadeIn 0.2s ease-out'
             }}
-            onClick={() => setPreviewImage(null)} // Click background to close
+            onClick={() => setPreviewImage(null)} 
         >
             <button 
                 onClick={() => setPreviewImage(null)}
@@ -373,7 +381,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                     objectFit: 'contain', borderRadius: '8px',
                     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
                 }}
-                onClick={(e) => e.stopPropagation()} // Click image won't close
+                onClick={(e) => e.stopPropagation()} 
             />
         </div>
       )}
