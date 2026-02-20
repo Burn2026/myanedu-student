@@ -11,13 +11,9 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
   const [selectedClass, setSelectedClass] = useState(null); 
   const [renewBatchId, setRenewBatchId] = useState(null);
   
-  // Payment Detail Modal အတွက် State
   const [selectedPayment, setSelectedPayment] = useState(null);
-  
-  // ဓာတ်ပုံအကြီးချဲ့ကြည့်ရန် State
   const [previewImage, setPreviewImage] = useState(null);
 
-  // ငွေလက်ခံမည့် ဖုန်းနံပါတ် Mapping
   const accountInfo = {
     "KPay": "09123456789 (U Kyaw Kyaw)",
     "Wave": "09987654321 (Daw Mya Mya)",
@@ -30,15 +26,12 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
     }
   }, [payments]);
 
-  // --- LOGIC: Filter & Merge Active Classes ---
-  // Verified ဖြစ်ပြီးသားများကိုသာ ယူမည်၊ တူညီသော Batch ID ဖြစ်ပါက ရက်ပေါင်းထည့်မည် (သက်တမ်းအကြာဆုံးကိုယူမည်)
   const getUniqueActiveClasses = (allPayments) => {
     const verifiedPayments = allPayments.filter(p => p.status === 'verified');
     const classMap = new Map();
 
     verifiedPayments.forEach(p => {
         const key = p.batch_id; 
-        
         if (classMap.has(key)) {
             const existing = classMap.get(key);
             if (new Date(p.expire_date) > new Date(existing.expire_date)) {
@@ -48,50 +41,48 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
             classMap.set(key, p);
         }
     });
-
     return Array.from(classMap.values());
   };
 
   const activeClasses = getUniqueActiveClasses(payments); 
-
-  // Stats Logic
   const activePayments = payments.filter(p => p.status === 'verified');
   const totalPaid = activePayments.reduce((sum, p) => sum + Number(p.amount), 0);
   const totalCourses = new Set(activePayments.map(p => p.course_name)).size;
   const allClasses = payments; 
 
-  // Helpers
   const getDaysRemaining = (expireDate) => {
     if (!expireDate) return 0;
     const diff = new Date(expireDate) - new Date();
     return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
   };
 
-  // Transaction ID Logic
   const getDisplayID = (payment) => {
     const tID = payment.transaction_id || payment.trans_id || payment.tid;
-    if (tID && String(tID) !== "null" && String(tID) !== "") {
-        return String(tID);
-    }
+    if (tID && String(tID) !== "null" && String(tID) !== "") return String(tID);
     return `#${payment.id}`;
   };
 
-  // ✅ (CRITICAL FIX) Image URL Helper
+  // ✅ (HIGHLY ROBUST) Image URL Helper
   const getImageUrl = (path) => {
-    if (!path) return null;
-    let cleanPath = String(path).trim();
+    if (!path || path === "null" || path === "undefined") return null;
     
-    // Cloudinary URL (http) ပါဝင်နေရင် အဲ့ဒီ http ကနေစပြီး ဖြတ်ယူသုံးမယ်
-    // ဒါက "/https://res..." လိုမျိုး Slash အပိုပါလာတဲ့ ပြဿနာကို ဖြေရှင်းပေးပါတယ်
+    // 1. Convert backslashes (\) to forward slashes (/) for Windows paths
+    let cleanPath = String(path).trim().replace(/\\/g, '/');
+    
+    // 2. If it contains HTTP/HTTPS, extract from that point onwards
     const httpIndex = cleanPath.indexOf("http");
     if (httpIndex !== -1) {
         return cleanPath.substring(httpIndex);
     }
     
-    // Local path အတွက် (e.g. uploads/image.jpg) Backend URL ခံပေးမယ်
-    if (cleanPath.startsWith('/')) {
-        cleanPath = cleanPath.substring(1);
+    // 3. If it's a Cloudinary link but somehow missing HTTP
+    if (cleanPath.includes("cloudinary.com")) {
+        cleanPath = cleanPath.replace(/^\/+/, ''); // Remove leading slashes
+        return `https://${cleanPath}`;
     }
+    
+    // 4. Fallback for Local Path (e.g., uploads/image.jpg)
+    cleanPath = cleanPath.replace(/^\/+/, '');
     return `https://myanedu-backend.onrender.com/${cleanPath}`;
   };
 
@@ -184,9 +175,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
                                 <span>{new Date(p.payment_date).toLocaleDateString()}</span>
-                                <span className="history-id">
-                                    {getDisplayID(p)}
-                                </span>
+                                <span className="history-id">{getDisplayID(p)}</span>
                             </div>
                         </div>
                         <span className={`badge ${p.status}`}>{p.status}</span>
@@ -247,9 +236,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                         <div className="history-info">
                             <div className="history-course">{p.course_name}</div>
                             <div className="history-meta">
-                                <span className="history-id" style={{fontWeight:'bold'}}>
-                                    {getDisplayID(p)}
-                                </span>
+                                <span className="history-id" style={{fontWeight:'bold'}}>{getDisplayID(p)}</span>
                                 <span>• {new Date(p.payment_date).toLocaleDateString()}</span>
                             </div>
                         </div>
@@ -327,11 +314,20 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
                                 style={{border: '1px solid #e2e8f0', cursor: 'zoom-in', maxWidth: '100%'}}
                                 onClick={() => setPreviewImage(getImageUrl(selectedPayment.receipt_image))}
                                 onError={(e) => {
-                                    console.error("Image Load Error:", e.target.src);
                                     e.target.style.display = 'none';
-                                    e.target.parentNode.innerHTML += `<span style="color:red; font-size:12px; display:block; padding:10px;">Unable to load image. Image might be deleted or path is broken.</span>`;
+                                    // Show debug info next to it
+                                    if(e.target.nextElementSibling) {
+                                        e.target.nextElementSibling.style.display = 'block';
+                                    }
                                 }}
                             />
+                            {/* DEBUG INFO: Only shows if image fails to load */}
+                            <div style={{display: 'none', background: '#fee2e2', padding: '10px', borderRadius: '8px', fontSize: '11px', color: '#b91c1c', marginTop: '10px', textAlign: 'left', wordBreak: 'break-all'}}>
+                                <strong>🚨 ပုံပြသ၍မရပါ။ (Image Load Error)</strong><br/><br/>
+                                <b>Saved Path (DB):</b> {selectedPayment.receipt_image}<br/><br/>
+                                <b>Tried URL:</b> {getImageUrl(selectedPayment.receipt_image)}
+                            </div>
+
                         </div>
                     ) : (
                         <div className="pm-receipt-box" style={{color: '#94a3b8', fontStyle: 'italic'}}>
@@ -351,7 +347,7 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
         </div>
       )}
 
-      {/* FULL SCREEN IMAGE PREVIEW MODAL (LIGHTBOX) */}
+      {/* FULL SCREEN IMAGE PREVIEW MODAL */}
       {previewImage && (
         <div 
             style={{
