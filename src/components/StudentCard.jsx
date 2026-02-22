@@ -12,7 +12,6 @@ function StudentCard({ student, onUpdate }) {
   const [profileImage, setProfileImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Image URL Helper (Cloudinary & Local ကို အလိုအလျောက် ခွဲခြားပေးမည်)
   const getImageUrl = (path) => {
     if (!path) return "https://ui-avatars.com/api/?name=" + (student?.name || 'User') + "&background=2563eb&color=fff";
     let cleanPath = String(path).trim().replace(/\\/g, '/');
@@ -47,7 +46,7 @@ function StudentCard({ student, onUpdate }) {
       if (res.ok) {
         alert("Profile updated successfully!");
         setIsEditing(false);
-        if (onUpdate) onUpdate(); // Refresh dashboard data
+        if (onUpdate) onUpdate(); 
       } else {
         alert(result.message || "Update failed");
       }
@@ -99,7 +98,8 @@ function StudentCard({ student, onUpdate }) {
 
             <div className="form-group">
               <label>Profile Picture</label>
-              <input type="file" accept="image/*" onChange={(e) => setProfileImage(e.target.files[0])} className="form-input file-input" />
+              {/* ✅ FIX: className ကို 'profile-file-input' သို့ ပြောင်းလိုက်ပါပြီ */}
+              <input type="file" accept="image/*" onChange={(e) => setProfileImage(e.target.files[0])} className="profile-file-input" />
             </div>
 
             <hr className="divider" />
@@ -156,7 +156,6 @@ function StudentCard({ student, onUpdate }) {
           <div className="info-list">
             <div className="info-row">
               <span className="info-label">PASSWORD</span>
-              {/* ✅ Password ကို ဖုံးကွယ်ထားသည် (••••••••) */}
               <span className="info-value password-masked">••••••••••••</span>
             </div>
           </div>
