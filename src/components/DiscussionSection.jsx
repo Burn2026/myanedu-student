@@ -1,114 +1,138 @@
-import React, { useState, useEffect } from 'react';
-import './DiscussionSection.css';
+import React, { useState, useEffect, useRef } from 'react';
+import './DiscussionSection.css'; // ✅ CSS အသစ်ချိတ်ဆက်ထားသည်
 
 function DiscussionSection({ lessonId, studentName }) {
   const [comments, setComments] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef(null);
 
-  // Comment များကို ဆွဲယူခြင်း
+  // ✅ FIX: API Endpoint ကို Admin နှင့် တူညီအောင် ပြင်ဆင်ထားသည်
   const fetchComments = async () => {
+    if (!lessonId) return;
     try {
-      const res = await fetch(`https://myanedu-backend.onrender.com/public/comments?lesson_id=${lessonId}`);
+      // မှတ်ချက် - backend တွင် public (သို့) admin comments လမ်းကြောင်းတူပါက /admin/comments ကိုသာ သုံးပါ
+      const res = await fetch(`https://myanedu-backend.onrender.com/admin/comments?lesson_id=${lessonId}`);
       if (res.ok) {
         const data = await res.json();
-        setComments(data);
+        
+        // Backend မှ data ဝင်လာသည့် ပုံစံအမျိုးမျိုးကို အလိုအလျောက် ဖြေရှင်းပေးမည်
+        let messages = [];
+        if (Array.isArray(data)) {
+            messages = data;
+        } else if (data && Array.isArray(data.data)) {
+            messages = data.data;
+        } else if (data && Array.isArray(data.comments)) {
+            messages = data.comments;
+        }
+        
+        setComments(messages);
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Error fetching comments:", err); }
   };
 
   useEffect(() => {
-    if (lessonId) fetchComments();
-    // Real-time သဘောမျိုးဖြစ်အောင် ၅ စက္ကန့်တစ်ကြိမ် Auto Refresh လုပ်ပေးနိုင်သည်
-    const interval = setInterval(() => {
-        if(lessonId) fetchComments();
-    }, 5000);
+    fetchComments();
+    const interval = setInterval(fetchComments, 5000); // 5 စက္ကန့်တစ်ခါ အလိုလို refresh လုပ်မည်
     return () => clearInterval(interval);
   }, [lessonId]);
 
-  // Comment အသစ်တင်ခြင်း
+  // အောက်ဆုံးသို့ အလိုအလျောက် scroll လုပ်မည်
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [comments]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !lessonId) return;
 
     setLoading(true);
     try {
-      await fetch('https://myanedu-backend.onrender.com/students/comments', {
+      // ✅ FIX: Backend သို့ပို့မည့် API လမ်းကြောင်းကို အမှန်တကယ်အလုပ်လုပ်သော admin/comments သို့ ပြောင်းထားသည်
+      // (ကျောင်းသားအတွက် သီးသန့် students/comments ရှိပါက ထိုလမ်းကြောင်းကို ပြန်ပြောင်းပေးနိုင်ပါသည်)
+      await fetch('https://myanedu-backend.onrender.com/admin/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lesson_id: lessonId,
-          user_name: studentName,
-          message: newMessage
+          user_name: studentName || 'Student', // နာမည်မရှိပါက Student ဟုထားမည်
+          user_role: 'student', // ✅ Admin နှင့်ခွဲခြားရန်
+          message: newMessage,
+          comment: newMessage // Backend လိုအပ်ချက်အရ နှစ်မျိုးလုံးပို့ထားသည်
         })
       });
       setNewMessage("");
-      fetchComments(); // ချက်ချင်းပြန်ဆွဲမည်
+      fetchComments(); // စာပို့ပြီးသည်နှင့် ချက်ချင်းပြန်ခေါ်မည်
     } catch (err) {
-      alert("Error sending message");
+      alert("Network Error: အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပါ။");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ marginTop: '30px', background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-      <h3 style={{ fontSize: '18px', color: '#1e293b', marginBottom: '20px', display:'flex', alignItems:'center', gap:'10px' }}>
-        💬 Q&A Discussion
-      </h3>
+    <div className="ds-container">
+      <div className="ds-header">
+        <div className="ds-header-icon">💬</div>
+        <h3 className="ds-title">Q&A Discussion</h3>
+        <span className="ds-badge">{comments.length} message(s)</span>
+      </div>
 
-      {/* Messages List */}
-      <div style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      {/* Messages Area */}
+      <div className="ds-chat-area">
         {comments.length === 0 ? (
-          <p style={{ color: '#94a3b8', textAlign: 'center', fontStyle: 'italic' }}>No questions yet. Be the first to ask!</p>
+          <div className="ds-empty-state">
+              <div className="ds-empty-icon">👋</div>
+              <p>No questions yet. Be the first to ask!</p>
+          </div>
         ) : (
-          comments.map((c) => (
-            <div key={c.id} style={{ 
-                alignSelf: c.user_role === 'admin' ? 'flex-start' : 'flex-end',
-                maxWidth: '80%',
-                display: 'flex', flexDirection: 'column', 
-                alignItems: c.user_role === 'admin' ? 'flex-start' : 'flex-end' 
-            }}>
-                <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', fontWeight: 'bold' }}>
-                    {c.user_role === 'admin' ? '🎓 ' : ''}{c.user_name}
+          comments.map((c, index) => {
+            const isAdmin = c.user_role === 'admin' || c.role === 'admin' || c.isAdmin === true;
+            // ကျောင်းသားကိုယ်တိုင် ပို့ထားသောစာဖြစ်ပါက ညာဘက်တွင်ပြမည်
+            const isMe = c.user_name === studentName || c.user_role === 'student';
+            const messageContent = c.message || c.comment || c.text || "No content";
+            const timeString = c.created_at ? new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+
+            return (
+              <div key={c.id || index} className={`ds-message-row ${isMe ? 'is-me' : 'is-other'}`}>
+                <div className="ds-message-sender">
+                    {isAdmin ? '🎓 Teacher (Admin)' : (isMe ? 'You' : `👤 ${c.user_name}`)}
                 </div>
-                <div style={{
-                    background: c.user_role === 'admin' ? '#eff6ff' : '#2563eb',
-                    color: c.user_role === 'admin' ? '#1e293b' : 'white',
-                    padding: '10px 15px', borderRadius: '12px',
-                    borderTopLeftRadius: c.user_role === 'admin' ? '0' : '12px',
-                    borderTopRightRadius: c.user_role === 'student' ? '0' : '12px',
-                    fontSize: '14px', lineHeight: '1.5',
-                    boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
-                }}>
-                    {c.message}
+                
+                <div className={`ds-message-bubble ${isAdmin ? 'admin-bubble' : ''}`}>
+                    {messageContent}
                 </div>
-                <div style={{ fontSize: '10px', color: '#cbd5e1', marginTop: '4px' }}>
-                    {new Date(c.created_at).toLocaleTimeString()}
-                </div>
-            </div>
-          ))
+                
+                {timeString && <div className="ds-message-time">{timeString}</div>}
+              </div>
+            );
+          })
         )}
+        <div ref={chatEndRef} />
       </div>
 
       {/* Input Form */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px' }}>
+      <form onSubmit={handleSubmit} className="ds-reply-form">
         <input 
           type="text" 
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Ask a question..."
-          style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+          placeholder="Ask a question about this lesson..."
+          className="ds-input"
+          disabled={loading}
         />
         <button 
           type="submit" 
-          disabled={loading}
-          style={{ 
-            background: '#2563eb', color: 'white', border: 'none', 
-            padding: '0 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' 
-          }}
+          disabled={loading || !newMessage.trim()}
+          className="ds-btn-send"
         >
-          {loading ? '...' : 'Send'}
+          {loading ? (
+             <span className="ds-spinner"></span>
+          ) : (
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+               <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
+             </svg>
+          )}
         </button>
       </form>
     </div>
