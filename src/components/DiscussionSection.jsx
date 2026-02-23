@@ -5,12 +5,9 @@ function DiscussionSection({ lessonId, studentName }) {
   const [comments, setComments] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  
-  // ✅ FIX: Q&A ကို ပိတ်ထား/ဖွင့်ထား သိမ်းမည့် State
   const [isOpen, setIsOpen] = useState(false);
   const chatEndRef = useRef(null);
 
-  // ✅ FIX: ဖတ်ပြီးသား စာအရေအတွက်ကို မှတ်ထားမည့် State
   const [readCount, setReadChats] = useState(() => {
       const saved = localStorage.getItem(`studentRead_${lessonId}`);
       return saved ? parseInt(saved, 10) : 0;
@@ -41,7 +38,6 @@ function DiscussionSection({ lessonId, studentName }) {
     return () => clearInterval(interval);
   }, [lessonId]);
 
-  // ✅ FIX: ဖွင့်လိုက်သည်နှင့် ဖတ်ပြီးသားစာအရေအတွက်ကို မှတ်သားမည်
   useEffect(() => {
     if (isOpen && comments.length > 0) {
         setReadChats(comments.length);
@@ -49,7 +45,6 @@ function DiscussionSection({ lessonId, studentName }) {
     }
   }, [isOpen, comments, lessonId]);
 
-  // အောက်ဆုံးသို့ အလိုအလျောက် scroll လုပ်မည် (ဖွင့်ထားမှသာ)
   useEffect(() => {
     if (isOpen) {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -82,8 +77,9 @@ function DiscussionSection({ lessonId, studentName }) {
     }
   };
 
-  // ✅ FIX: စာအသစ် ဝင်/မဝင် စစ်ဆေးခြင်း
+  // စာအသစ် အရေအတွက် တွက်ချက်ခြင်း
   const hasNewMessage = comments.length > readCount;
+  const unreadCount = comments.length - readCount;
 
   return (
     <div className="ds-container">
@@ -96,7 +92,11 @@ function DiscussionSection({ lessonId, studentName }) {
             {/* စာအသစ်ရှိပြီး ပိတ်ထားပါက အနီရောင်အစက်ပြမည် */}
             {hasNewMessage && !isOpen && <span className="ds-red-dot"></span>}
         </h3>
-        <span className="ds-badge">{comments.length} message(s)</span>
+        
+        {/* ✅ FIX: စာအသစ်ရှိပြီး မဖွင့်ရသေးမှသာ အရေအတွက်ကို ပြမည်။ ဖွင့်ပြီးသွားလျှင် အပြီးတိုင် ဖျောက်ထားမည်။ */}
+        {hasNewMessage && !isOpen && (
+            <span className="ds-badge">{unreadCount} New</span>
+        )}
         
         {/* Toggle Icon (အပေါ်/အောက် မြှား) */}
         <div className={`ds-chevron ${isOpen ? 'open' : ''}`}>
