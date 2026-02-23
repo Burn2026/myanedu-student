@@ -9,7 +9,15 @@ function OnlinePayment({ student, onPaymentSuccess, preSelectedBatch }) {
   const [transactionId, setTransactionId] = useState("");
   const [receipt, setReceipt] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [fetchError, setFetchError] = useState(""); // Error message ပြရန်
+  const [fetchError, setFetchError] = useState(""); 
+
+  // ✅ 1. Premium Modal အတွက် State သတ်မှတ်ခြင်း
+  const [modal, setModal] = useState({ 
+      isOpen: false, 
+      type: 'success', // 'success' သို့မဟုတ် 'error'
+      title: '', 
+      message: '' 
+  });
 
   const accountInfo = {
     "KPay": { number: "09123456789", name: "U Kyaw Kyaw" },
@@ -17,20 +25,13 @@ function OnlinePayment({ student, onPaymentSuccess, preSelectedBatch }) {
     "CB": { number: "001122334455", name: "U Ba Maung" }
   };
 
-  // ✅ 1. Fetch Batches with Debugging Logs
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        console.log("Fetching batches from backend..."); // Log 1
         const res = await fetch('https://myanedu-backend.onrender.com/students/active-batches');
-        
-        if (!res.ok) {
-            throw new Error(`API Error: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`API Error: ${res.status}`);
 
         const data = await res.json();
-        console.log("Batches received:", data); // Log 2
-
         if (Array.isArray(data) && data.length > 0) {
             setBatches(data);
             setFetchError("");
@@ -38,7 +39,6 @@ function OnlinePayment({ student, onPaymentSuccess, preSelectedBatch }) {
             setFetchError("No active courses found.");
         }
 
-        // Renew Logic
         if (preSelectedBatch && data.length > 0) {
             const found = data.find(b => b.id == preSelectedBatch);
             if (found) {
@@ -47,7 +47,6 @@ function OnlinePayment({ student, onPaymentSuccess, preSelectedBatch }) {
             }
         }
       } catch (err) {
-        console.error("Fetch Error:", err);
         setFetchError("Cannot load courses. Check Backend.");
       }
     };
@@ -58,17 +57,16 @@ function OnlinePayment({ student, onPaymentSuccess, preSelectedBatch }) {
     const batchId = e.target.value;
     setSelectedBatchId(batchId);
     const selected = batches.find(b => b.id == batchId);
-    if (selected) {
-        setAmount(selected.fees);
-    } else {
-        setAmount("");
-    }
+    if (selected) setAmount(selected.fees);
+    else setAmount("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedBatchId || !amount || !transactionId || !receipt) {
-      return alert("Please fill all fields and upload receipt.");
+        // ရိုးရိုး alert အစား Modal ပြမည်
+        setModal({ isOpen: true, type: 'error', title: 'လိုအပ်ချက်ရှိနေပါသည်', message: 'ကျေးဇူးပြု၍ အချက်အလက်များကို ပြည့်စုံစွာ ဖြည့်သွင်းပြီး ငွေလွှဲပြေစာ တင်ပေးပါ။' });
+        return;
     }
 
     setLoading(true);
@@ -88,22 +86,25 @@ function OnlinePayment({ student, onPaymentSuccess, preSelectedBatch }) {
 
       const data = await res.json();
       if (res.ok) {
-        alert("Payment Submitted Successfully!");
+        // ✅ အောင်မြင်ကြောင်း Modal ပြမည်
+        setModal({ isOpen: true, type: 'success', title: 'အောင်မြင်ပါသည်', message: 'သင်၏ ငွေပေးချေမှုကို လက်ခံရရှိပါသည်။ Admin မှ မကြာမီ အတည်ပြုပေးပါမည်။' });
         setSelectedBatchId("");
         setAmount("");
         setTransactionId("");
         setReceipt(null);
         if (onPaymentSuccess) onPaymentSuccess();
       } else {
-        alert(data.message || "Payment Failed");
+        // ❌ Error ဖြစ်ကြောင်း (Double Payment စသည်ဖြင့်) Modal ပြမည်
+        setModal({ isOpen: true, type: 'error', title: 'အသိပေးချက်', message: data.message || 'ငွေပေးချေမှု တင်သွင်းခြင်း မအောင်မြင်ပါ။' });
       }
     } catch (err) {
-      console.error(err);
-      alert("Server Error. Please try again.");
+      setModal({ isOpen: true, type: 'error', title: 'ချိတ်ဆက်မှု အခက်အခဲ', message: 'Connection Error! အင်တာနက်ချိတ်ဆက်မှုကို ပြန်လည်စစ်ဆေးပါ။' });
     } finally {
       setLoading(false);
     }
   };
+
+  const closeModal = () => setModal({ ...modal, isOpen: false });
 
   return (
     <div className="payment-form-container">
@@ -128,7 +129,6 @@ function OnlinePayment({ student, onPaymentSuccess, preSelectedBatch }) {
               </option>
             ))}
           </select>
-          {/* Debug Error Message Show Here */}
           {fetchError && <p style={{color: 'red', fontSize: '12px', marginTop: '5px'}}>{fetchError}</p>}
         </div>
 
@@ -141,7 +141,6 @@ function OnlinePayment({ student, onPaymentSuccess, preSelectedBatch }) {
             readOnly 
             placeholder="Course fees will appear here"
             className="form-input readonly-input"
-            style={{backgroundColor: '#f1f5f9', cursor: 'not-allowed', color: '#64748b'}}
           />
         </div>
 
@@ -209,6 +208,35 @@ function OnlinePayment({ student, onPaymentSuccess, preSelectedBatch }) {
         </button>
 
       </form>
+
+      {/* --- ✅ PREMIUM MODAL DIALOG --- */}
+      {modal.isOpen && (
+        <div className="op-modal-overlay" onClick={closeModal}>
+            <div className="op-modal-box" onClick={(e) => e.stopPropagation()}>
+                
+                {/* Icon */}
+                <div className={`op-modal-icon ${modal.type}`}>
+                    {modal.type === 'success' ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" width="36" height="36">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" width="36" height="36">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    )}
+                </div>
+
+                <h3 className="op-modal-title">{modal.title}</h3>
+                <p className="op-modal-message">{modal.message}</p>
+                
+                <button className={`op-modal-btn ${modal.type}`} onClick={closeModal}>
+                    အိုကေ (OK)
+                </button>
+            </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -172,6 +172,102 @@
   transform: none;
 }
 
+/* =========================================
+   🌟 PREMIUM MODAL DIALOG STYLES
+   ========================================= */
+.op-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: op-fadeIn 0.2s ease-out;
+}
+
+.op-modal-box {
+    background: white;
+    border-radius: 20px;
+    padding: 30px 25px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    animation: op-slideUp 0.3s ease-out;
+}
+
+.op-modal-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.op-modal-icon.success {
+    background-color: #dcfce7;
+    color: #16a34a;
+    box-shadow: 0 0 0 6px #f0fdf4;
+}
+
+.op-modal-icon.error {
+    background-color: #fee2e2;
+    color: #dc2626;
+    box-shadow: 0 0 0 6px #fef2f2;
+}
+
+.op-modal-title {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.op-modal-message {
+    margin: 0 0 25px 0;
+    font-size: 15px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.op-modal-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s;
+}
+
+.op-modal-btn.success {
+    background-color: #16a34a;
+    color: white;
+}
+.op-modal-btn.success:hover { background-color: #15803d; }
+
+.op-modal-btn.error {
+    background-color: #dc2626;
+    color: white;
+}
+.op-modal-btn.error:hover { background-color: #b91c1c; }
+
+@keyframes op-fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes op-slideUp {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* Mobile Responsive */
 @media (max-width: 600px) {
   .payment-form-container {
