@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ClassEnrollment.css';
 
 function ClassEnrollment({ student, onEnrollSuccess }) {
@@ -6,7 +6,14 @@ function ClassEnrollment({ student, onEnrollSuccess }) {
   const [selectedBatch, setSelectedBatch] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ၁. ရှိသမျှ အတန်းများကို လှမ်းယူခြင်း
+  // ✅ 1. Premium Modal အတွက် State သတ်မှတ်ခြင်း
+  const [modal, setModal] = useState({ 
+      isOpen: false, 
+      type: 'success', // 'success' သို့မဟုတ် 'error'
+      title: '', 
+      message: '' 
+  });
+
   useEffect(() => {
     fetch('https://myanedu-backend.onrender.com/public/batches')
       .then(res => res.json())
@@ -14,9 +21,12 @@ function ClassEnrollment({ student, onEnrollSuccess }) {
       .catch(err => console.error("Error fetching batches:", err));
   }, []);
 
-  // ၂. အတန်းအပ်နှံခြင်း ခလုတ်နှိပ်လျှင်
   const handleEnroll = async () => {
-    if (!selectedBatch) return alert("ကျေးဇူးပြု၍ အတန်းတစ်ခု ရွေးချယ်ပါ");
+    if (!selectedBatch) {
+        // ရိုးရိုး alert အစား Modal ပြမည်
+        setModal({ isOpen: true, type: 'error', title: 'လိုအပ်ချက်ရှိနေပါသည်', message: 'ကျေးဇူးပြု၍ တက်ရောက်လိုသော အတန်းတစ်ခုကို ရွေးချယ်ပါ။' });
+        return;
+    }
 
     setLoading(true);
     try {
@@ -32,28 +42,32 @@ function ClassEnrollment({ student, onEnrollSuccess }) {
       const result = await response.json();
 
       if (response.ok) {
-        alert("✅ " + result.message);
-        setSelectedBatch(""); // Reset selection
-        onEnrollSuccess(); // Parent ကို အသိပေးပြီး Refresh လုပ်ခိုင်းမယ်
+        // ✅ အောင်မြင်ကြောင်း Modal ပြမည်
+        setModal({ isOpen: true, type: 'success', title: 'အောင်မြင်ပါသည်', message: result.message || 'အတန်းအပ်နှံခြင်း အောင်မြင်ပါသည်။' });
+        setSelectedBatch(""); 
+        if(onEnrollSuccess) onEnrollSuccess(); // Parent ကို အသိပေးပြီး Data ပြန် Refresh လုပ်ခိုင်းမည်
       } else {
-        alert("⚠️ " + result.message);
+        // ❌ Error ဖြစ်ကြောင်း (ဥပမာ - Pending ဖြစ်နေသည်) Modal ပြမည်
+        setModal({ isOpen: true, type: 'error', title: 'အသိပေးချက်', message: result.message || 'လုပ်ဆောင်မှု မအောင်မြင်ပါ။' });
       }
     } catch (err) {
-      alert("Connection Error!");
+        setModal({ isOpen: true, type: 'error', title: 'ချိတ်ဆက်မှု အခက်အခဲ', message: 'Connection Error! အင်တာနက်ချိတ်ဆက်မှုကို ပြန်လည်စစ်ဆေးပါ။' });
     }
     setLoading(false);
   };
 
-  return (
-    <div className="table-card" style={{ borderLeft: '5px solid #d97706' }}>
-      <h3 style={{ marginTop: 0, color: '#d97706' }}>🎓 အတန်းသစ် အပ်နှံရန် (New Enrollment)</h3>
-      <p style={{ color: '#666', fontSize: '14px' }}>တက်ရောက်လိုသော အတန်းကို ရွေးချယ်ပြီး အပ်နှံနိုင်ပါသည်</p>
+  const closeModal = () => setModal({ ...modal, isOpen: false });
 
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '15px' }}>
+  return (
+    <div className="enrollment-card">
+      <h3 className="enroll-title">🎓 အတန်းသစ် အပ်နှံရန် (New Enrollment)</h3>
+      <p className="enroll-subtitle">တက်ရောက်လိုသော အတန်းကို ရွေးချယ်ပြီး အပ်နှံနိုင်ပါသည်</p>
+
+      <div className="enroll-form">
         <select 
           value={selectedBatch}
           onChange={(e) => setSelectedBatch(e.target.value)}
-          style={{ flex: 1, padding: '12px', borderRadius: '6px', border: '1px solid #ccc', minWidth: '200px' }}
+          className="enroll-select"
         >
           <option value="">-- အတန်းရွေးချယ်ပါ --</option>
           {batches.map(batch => (
@@ -66,19 +80,40 @@ function ClassEnrollment({ student, onEnrollSuccess }) {
         <button 
           onClick={handleEnroll}
           disabled={loading}
-          style={{ 
-            padding: '12px 20px', 
-            background: '#d97706', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '6px', 
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
+          className="enroll-btn"
         >
           {loading ? "လုပ်ဆောင်နေသည်..." : "+ အပ်နှံမည်"}
         </button>
       </div>
+
+      {/* --- ✅ PREMIUM MODAL DIALOG --- */}
+      {modal.isOpen && (
+        <div className="ce-modal-overlay" onClick={closeModal}>
+            <div className="ce-modal-box" onClick={(e) => e.stopPropagation()}>
+                
+                {/* Icon (Success = ✅, Error = ⚠️) */}
+                <div className={`ce-modal-icon ${modal.type}`}>
+                    {modal.type === 'success' ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" width="36" height="36">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" width="36" height="36">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    )}
+                </div>
+
+                <h3 className="ce-modal-title">{modal.title}</h3>
+                <p className="ce-modal-message">{modal.message}</p>
+                
+                <button className={`ce-modal-btn ${modal.type}`} onClick={closeModal}>
+                    အိုကေ (OK)
+                </button>
+            </div>
+        </div>
+      )}
+
     </div>
   );
 }

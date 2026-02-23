@@ -1,17 +1,172 @@
 /* src/components/ClassEnrollment.css */
+
 .enrollment-card {
-  background: white; padding: 20px; border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 5px solid #d97706;
+  background: white; 
+  padding: 24px; 
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); 
+  border-left: 5px solid #d97706;
   margin-top: 20px;
 }
 
-.enroll-form { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+.enroll-title {
+    margin-top: 0;
+    color: #d97706;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.enroll-subtitle {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 15px;
+    margin-top: 0;
+}
+
+.enroll-form { 
+    display: flex; 
+    gap: 12px; 
+    flex-wrap: wrap; 
+}
 
 .enroll-select {
-  flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #ccc; min-width: 200px;
+  flex: 1; 
+  padding: 12px 15px; 
+  border-radius: 8px; 
+  border: 1px solid #cbd5e1; 
+  min-width: 200px;
+  font-size: 14.5px;
+  outline: none;
+  transition: border-color 0.2s;
+  color: #1e293b;
+}
+
+.enroll-select:focus {
+    border-color: #d97706;
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
 }
 
 .enroll-btn {
-  padding: 12px 20px; background: #d97706; color: white;
-  border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
+  padding: 12px 24px; 
+  background: #d97706; 
+  color: white;
+  border: none; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  font-weight: bold;
+  font-size: 15px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.enroll-btn:hover:not(:disabled) {
+    background: #b45309;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.3);
+}
+
+.enroll-btn:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* =========================================
+   🌟 PREMIUM MODAL DIALOG STYLES
+   ========================================= */
+.ce-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: ce-fadeIn 0.2s ease-out;
+}
+
+.ce-modal-box {
+    background: white;
+    border-radius: 20px;
+    padding: 30px 25px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    animation: ce-slideUp 0.3s ease-out;
+}
+
+.ce-modal-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* Success Green Theme */
+.ce-modal-icon.success {
+    background-color: #dcfce7;
+    color: #16a34a;
+    box-shadow: 0 0 0 6px #f0fdf4;
+}
+
+/* Error Red Theme */
+.ce-modal-icon.error {
+    background-color: #fee2e2;
+    color: #dc2626;
+    box-shadow: 0 0 0 6px #fef2f2;
+}
+
+.ce-modal-title {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.ce-modal-message {
+    margin: 0 0 25px 0;
+    font-size: 15px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.ce-modal-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s;
+}
+
+.ce-modal-btn.success {
+    background-color: #16a34a;
+    color: white;
+}
+.ce-modal-btn.success:hover { background-color: #15803d; }
+
+.ce-modal-btn.error {
+    background-color: #dc2626;
+    color: white;
+}
+.ce-modal-btn.error:hover { background-color: #b91c1c; }
+
+@keyframes ce-fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes ce-slideUp {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
