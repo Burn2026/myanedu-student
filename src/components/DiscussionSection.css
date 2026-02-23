@@ -12,13 +12,20 @@
   max-width: 100%;
 }
 
+/* Clickable Header */
 .ds-header {
   padding: 18px 20px;
   background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  user-select: none;
+}
+
+.ds-header:hover {
+  background: #f1f5f9;
 }
 
 .ds-header-icon {
@@ -38,15 +45,58 @@
   color: #0f172a;
   font-weight: 800;
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ✅ Notification Red Dot */
+.ds-red-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
 .ds-badge {
-  background: #f1f5f9;
-  color: #64748b;
+  background: #e2e8f0;
+  color: #475569;
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 11px;
   font-weight: 700;
+}
+
+/* Toggle Chevron Icon */
+.ds-chevron {
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.ds-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Body Area Wrapper */
+.ds-body-wrapper {
+  border-top: 1px solid #e2e8f0;
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Chat Area */
@@ -60,7 +110,6 @@
   background: #fafaf9;
 }
 
-/* Custom Scrollbar */
 .ds-chat-area::-webkit-scrollbar { width: 6px; }
 .ds-chat-area::-webkit-scrollbar-track { background: transparent; }
 .ds-chat-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -124,14 +173,12 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* ကျောင်းသားပို့သောစာ (အပြာရောင်) */
 .is-me .ds-message-bubble {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
   border-radius: 18px 18px 4px 18px;
 }
 
-/* Admin (Teacher) ပို့သောစာ */
 .ds-message-bubble.admin-bubble {
   background: #f0fdf4;
   color: #16a34a;
@@ -139,7 +186,6 @@
   border-radius: 18px 18px 18px 4px;
 }
 
-/* အခြားကျောင်းသားများပို့သောစာ */
 .is-other:not(:has(.admin-bubble)) .ds-message-bubble {
   background: white;
   color: #1e293b;
@@ -213,7 +259,6 @@
   cursor: not-allowed;
 }
 
-/* Loading Spinner */
 .ds-spinner {
   width: 20px;
   height: 20px;
@@ -242,20 +287,8 @@
     border-right: none;
   }
 
-  .ds-message-row {
-    max-width: 90%; 
-  }
-
-  .ds-reply-form {
-    padding: 12px 15px;
-  }
-
-  .ds-input {
-    padding: 12px 16px;
-  }
-
-  .ds-btn-send {
-    width: 44px;
-    height: 44px;
-  }
+  .ds-message-row { max-width: 90%; }
+  .ds-reply-form { padding: 12px 15px; }
+  .ds-input { padding: 12px 16px; }
+  .ds-btn-send { width: 44px; height: 44px; }
 }

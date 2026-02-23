@@ -1,22 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './DiscussionSection.css'; // ✅ CSS အသစ်ချိတ်ဆက်ထားသည်
+import './DiscussionSection.css'; 
 
 function DiscussionSection({ lessonId, studentName }) {
   const [comments, setComments] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // ✅ FIX: Q&A ကို ပိတ်ထား/ဖွင့်ထား သိမ်းမည့် State
+  const [isOpen, setIsOpen] = useState(false);
   const chatEndRef = useRef(null);
 
-  // ✅ FIX: API Endpoint ကို Admin နှင့် တူညီအောင် ပြင်ဆင်ထားသည်
+  // ✅ FIX: ဖတ်ပြီးသား စာအရေအတွက်ကို မှတ်ထားမည့် State
+  const [readCount, setReadChats] = useState(() => {
+      const saved = localStorage.getItem(`studentRead_${lessonId}`);
+      return saved ? parseInt(saved, 10) : 0;
+  });
+
   const fetchComments = async () => {
     if (!lessonId) return;
     try {
-      // မှတ်ချက် - backend တွင် public (သို့) admin comments လမ်းကြောင်းတူပါက /admin/comments ကိုသာ သုံးပါ
       const res = await fetch(`https://myanedu-backend.onrender.com/admin/comments?lesson_id=${lessonId}`);
       if (res.ok) {
         const data = await res.json();
-        
-        // Backend မှ data ဝင်လာသည့် ပုံစံအမျိုးမျိုးကို အလိုအလျောက် ဖြေရှင်းပေးမည်
         let messages = [];
         if (Array.isArray(data)) {
             messages = data;
@@ -25,7 +30,6 @@ function DiscussionSection({ lessonId, studentName }) {
         } else if (data && Array.isArray(data.comments)) {
             messages = data.comments;
         }
-        
         setComments(messages);
       }
     } catch (err) { console.error("Error fetching comments:", err); }
@@ -33,14 +37,24 @@ function DiscussionSection({ lessonId, studentName }) {
 
   useEffect(() => {
     fetchComments();
-    const interval = setInterval(fetchComments, 5000); // 5 စက္ကန့်တစ်ခါ အလိုလို refresh လုပ်မည်
+    const interval = setInterval(fetchComments, 5000); 
     return () => clearInterval(interval);
   }, [lessonId]);
 
-  // အောက်ဆုံးသို့ အလိုအလျောက် scroll လုပ်မည်
+  // ✅ FIX: ဖွင့်လိုက်သည်နှင့် ဖတ်ပြီးသားစာအရေအတွက်ကို မှတ်သားမည်
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [comments]);
+    if (isOpen && comments.length > 0) {
+        setReadChats(comments.length);
+        localStorage.setItem(`studentRead_${lessonId}`, comments.length.toString());
+    }
+  }, [isOpen, comments, lessonId]);
+
+  // အောက်ဆုံးသို့ အလိုအလျောက် scroll လုပ်မည် (ဖွင့်ထားမှသာ)
+  useEffect(() => {
+    if (isOpen) {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [comments, isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,21 +62,19 @@ function DiscussionSection({ lessonId, studentName }) {
 
     setLoading(true);
     try {
-      // ✅ FIX: Backend သို့ပို့မည့် API လမ်းကြောင်းကို အမှန်တကယ်အလုပ်လုပ်သော admin/comments သို့ ပြောင်းထားသည်
-      // (ကျောင်းသားအတွက် သီးသန့် students/comments ရှိပါက ထိုလမ်းကြောင်းကို ပြန်ပြောင်းပေးနိုင်ပါသည်)
       await fetch('https://myanedu-backend.onrender.com/admin/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lesson_id: lessonId,
-          user_name: studentName || 'Student', // နာမည်မရှိပါက Student ဟုထားမည်
-          user_role: 'student', // ✅ Admin နှင့်ခွဲခြားရန်
+          user_name: studentName || 'Student', 
+          user_role: 'student', 
           message: newMessage,
-          comment: newMessage // Backend လိုအပ်ချက်အရ နှစ်မျိုးလုံးပို့ထားသည်
+          comment: newMessage 
         })
       });
       setNewMessage("");
-      fetchComments(); // စာပို့ပြီးသည်နှင့် ချက်ချင်းပြန်ခေါ်မည်
+      fetchComments(); 
     } catch (err) {
       alert("Network Error: အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပါ။");
     } finally {
@@ -70,71 +82,88 @@ function DiscussionSection({ lessonId, studentName }) {
     }
   };
 
+  // ✅ FIX: စာအသစ် ဝင်/မဝင် စစ်ဆေးခြင်း
+  const hasNewMessage = comments.length > readCount;
+
   return (
     <div className="ds-container">
-      <div className="ds-header">
+      
+      {/* Clickable Header for Toggle */}
+      <div className="ds-header" onClick={() => setIsOpen(!isOpen)}>
         <div className="ds-header-icon">💬</div>
-        <h3 className="ds-title">Q&A Discussion</h3>
+        <h3 className="ds-title">
+            Q&A Discussion
+            {/* စာအသစ်ရှိပြီး ပိတ်ထားပါက အနီရောင်အစက်ပြမည် */}
+            {hasNewMessage && !isOpen && <span className="ds-red-dot"></span>}
+        </h3>
         <span className="ds-badge">{comments.length} message(s)</span>
+        
+        {/* Toggle Icon (အပေါ်/အောက် မြှား) */}
+        <div className={`ds-chevron ${isOpen ? 'open' : ''}`}>
+           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" width="18" height="18">
+             <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+           </svg>
+        </div>
       </div>
 
-      {/* Messages Area */}
-      <div className="ds-chat-area">
-        {comments.length === 0 ? (
-          <div className="ds-empty-state">
-              <div className="ds-empty-icon">👋</div>
-              <p>No questions yet. Be the first to ask!</p>
-          </div>
-        ) : (
-          comments.map((c, index) => {
-            const isAdmin = c.user_role === 'admin' || c.role === 'admin' || c.isAdmin === true;
-            // ကျောင်းသားကိုယ်တိုင် ပို့ထားသောစာဖြစ်ပါက ညာဘက်တွင်ပြမည်
-            const isMe = c.user_name === studentName || c.user_role === 'student';
-            const messageContent = c.message || c.comment || c.text || "No content";
-            const timeString = c.created_at ? new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-
-            return (
-              <div key={c.id || index} className={`ds-message-row ${isMe ? 'is-me' : 'is-other'}`}>
-                <div className="ds-message-sender">
-                    {isAdmin ? '🎓 Teacher (Admin)' : (isMe ? 'You' : `👤 ${c.user_name}`)}
+      {/* Messages Area (ဖွင့်ထားမှသာ ပြမည်) */}
+      {isOpen && (
+        <div className="ds-body-wrapper">
+            <div className="ds-chat-area">
+              {comments.length === 0 ? (
+                <div className="ds-empty-state">
+                    <div className="ds-empty-icon">👋</div>
+                    <p>No questions yet. Ask your teacher!</p>
                 </div>
-                
-                <div className={`ds-message-bubble ${isAdmin ? 'admin-bubble' : ''}`}>
-                    {messageContent}
-                </div>
-                
-                {timeString && <div className="ds-message-time">{timeString}</div>}
-              </div>
-            );
-          })
-        )}
-        <div ref={chatEndRef} />
-      </div>
+              ) : (
+                comments.map((c, index) => {
+                  const isAdmin = c.user_role === 'admin' || c.role === 'admin' || c.isAdmin === true;
+                  const isMe = c.user_name === studentName || c.user_role === 'student';
+                  const messageContent = c.message || c.comment || c.text || "No content";
+                  const timeString = c.created_at ? new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
 
-      {/* Input Form */}
-      <form onSubmit={handleSubmit} className="ds-reply-form">
-        <input 
-          type="text" 
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Ask a question about this lesson..."
-          className="ds-input"
-          disabled={loading}
-        />
-        <button 
-          type="submit" 
-          disabled={loading || !newMessage.trim()}
-          className="ds-btn-send"
-        >
-          {loading ? (
-             <span className="ds-spinner"></span>
-          ) : (
-             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-               <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
-             </svg>
-          )}
-        </button>
-      </form>
+                  return (
+                    <div key={c.id || index} className={`ds-message-row ${isMe ? 'is-me' : 'is-other'}`}>
+                      <div className="ds-message-sender">
+                          {isAdmin ? '🎓 Teacher (Admin)' : (isMe ? 'You' : `👤 ${c.user_name}`)}
+                      </div>
+                      <div className={`ds-message-bubble ${isAdmin ? 'admin-bubble' : ''}`}>
+                          {messageContent}
+                      </div>
+                      {timeString && <div className="ds-message-time">{timeString}</div>}
+                    </div>
+                  );
+                })
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Input Form */}
+            <form onSubmit={handleSubmit} className="ds-reply-form">
+              <input 
+                type="text" 
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Ask a question about this lesson..."
+                className="ds-input"
+                disabled={loading}
+              />
+              <button 
+                type="submit" 
+                disabled={loading || !newMessage.trim()}
+                className="ds-btn-send"
+              >
+                {loading ? (
+                   <span className="ds-spinner"></span>
+                ) : (
+                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                     <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
+                   </svg>
+                )}
+              </button>
+            </form>
+        </div>
+      )}
     </div>
   );
 }
