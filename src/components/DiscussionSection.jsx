@@ -16,7 +16,9 @@ function DiscussionSection({ lessonId, studentName }) {
   const fetchComments = async () => {
     if (!lessonId) return;
     try {
-      const res = await fetch(`https://myanedu-backend.onrender.com/admin/comments?lesson_id=${lessonId}`);
+      // ✅ FIX: admin/comments အစား students/comments ကို ပြောင်းသုံးပြီး studentName ပါ ထည့်ပို့သည်
+      const res = await fetch(`https://myanedu-backend.onrender.com/students/comments?lesson_id=${lessonId}&user_name=${encodeURIComponent(studentName || '')}`);
+      
       if (res.ok) {
         const data = await res.json();
         let messages = [];
@@ -36,7 +38,7 @@ function DiscussionSection({ lessonId, studentName }) {
     fetchComments();
     const interval = setInterval(fetchComments, 5000); 
     return () => clearInterval(interval);
-  }, [lessonId]);
+  }, [lessonId, studentName]); // studentName ပြောင်းလဲမှုရှိလျှင် ပြန်ခေါ်မည်
 
   useEffect(() => {
     if (isOpen && comments.length > 0) {
@@ -57,15 +59,15 @@ function DiscussionSection({ lessonId, studentName }) {
 
     setLoading(true);
     try {
-      await fetch('https://myanedu-backend.onrender.com/admin/comments', {
+      // ✅ FIX: စာပို့ရန် students/comments route ကို အသုံးပြုမည်
+      await fetch('https://myanedu-backend.onrender.com/students/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lesson_id: lessonId,
           user_name: studentName || 'Student', 
           user_role: 'student', 
-          message: newMessage,
-          comment: newMessage 
+          message: newMessage
         })
       });
       setNewMessage("");
@@ -77,28 +79,23 @@ function DiscussionSection({ lessonId, studentName }) {
     }
   };
 
-  // စာအသစ် အရေအတွက် တွက်ချက်ခြင်း
   const hasNewMessage = comments.length > readCount;
   const unreadCount = comments.length - readCount;
 
   return (
     <div className="ds-container">
       
-      {/* Clickable Header for Toggle */}
       <div className="ds-header" onClick={() => setIsOpen(!isOpen)}>
         <div className="ds-header-icon">💬</div>
         <h3 className="ds-title">
             Q&A Discussion
-            {/* စာအသစ်ရှိပြီး ပိတ်ထားပါက အနီရောင်အစက်ပြမည် */}
             {hasNewMessage && !isOpen && <span className="ds-red-dot"></span>}
         </h3>
         
-        {/* ✅ FIX: စာအသစ်ရှိပြီး မဖွင့်ရသေးမှသာ အရေအတွက်ကို ပြမည်။ ဖွင့်ပြီးသွားလျှင် အပြီးတိုင် ဖျောက်ထားမည်။ */}
         {hasNewMessage && !isOpen && (
             <span className="ds-badge">{unreadCount} New</span>
         )}
         
-        {/* Toggle Icon (အပေါ်/အောက် မြှား) */}
         <div className={`ds-chevron ${isOpen ? 'open' : ''}`}>
            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" width="18" height="18">
              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -106,7 +103,6 @@ function DiscussionSection({ lessonId, studentName }) {
         </div>
       </div>
 
-      {/* Messages Area (ဖွင့်ထားမှသာ ပြမည်) */}
       {isOpen && (
         <div className="ds-body-wrapper">
             <div className="ds-chat-area">
@@ -138,13 +134,12 @@ function DiscussionSection({ lessonId, studentName }) {
               <div ref={chatEndRef} />
             </div>
 
-            {/* Input Form */}
             <form onSubmit={handleSubmit} className="ds-reply-form">
               <input 
                 type="text" 
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Ask a question about this lesson..."
+                placeholder="Ask a question..."
                 className="ds-input"
                 disabled={loading}
               />
