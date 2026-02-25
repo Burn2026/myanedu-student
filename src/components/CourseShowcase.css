@@ -1,51 +1,172 @@
 /* src/components/CourseShowcase.css */
 
-.promo-section { padding: 40px 0; }
-.promo-header { text-align: center; margin-bottom: 40px; }
+.promo-section { 
+  padding: 40px 20px; /* ဘေးဘောင်ကပ်မနေအောင် padding အနည်းငယ်တိုးထားသည် */
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.promo-header { 
+  text-align: center; 
+  margin-bottom: 40px; 
+}
 
 .promo-title {
   font-size: 28px; 
-  background: -webkit-linear-gradient(var(--primary-color), #06b6d4);
-  
-  /* Standard Property Added for Compatibility */
-  background-clip: text; 
+  background: linear-gradient(90deg, #2563eb, #06b6d4); /* Gradient အရောင်ကို ပိုတောက်အောင် ပြင်ထားသည် */
   -webkit-background-clip: text;
-  
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 900; 
   text-transform: uppercase; 
   letter-spacing: 1px;
+  margin-top: 10px;
 }
 
-.promo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 30px; }
+/* Grid Layout */
+.promo-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+  gap: 25px; 
+  margin-top: 30px; 
+}
 
+/* Card Design */
 .promo-card {
-  background: white; border-radius: 20px; padding: 25px; position: relative;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
-  transition: transform 0.3s ease; overflow: hidden;
+  background: white; 
+  border-radius: 20px; 
+  padding: 25px; 
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+  border: 1px solid #e2e8f0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; 
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
-.promo-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
 
-.status-badge-corner { position: absolute; top: 15px; right: 15px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-.status-open { background: #dcfce7; color: #166534; }
-.status-full { background: #fee2e2; color: #991b1b; }
+.promo-card:hover { 
+  transform: translateY(-5px); 
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); 
+  border-color: #bfdbfe; /* Hover လုပ်ရင် ဘောင်အရောင်ပြောင်းမည် */
+}
 
+/* Status Badge (OPEN/CLOSED) */
+.status-badge-corner { 
+  position: absolute; 
+  top: 15px; 
+  right: 15px; 
+  padding: 5px 12px; 
+  border-radius: 20px; 
+  font-size: 11px; 
+  font-weight: 800; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+}
+
+.status-open { 
+  background: #dcfce7; 
+  color: #166534; 
+  border: 1px solid #bbf7d0;
+}
+
+.status-full { 
+  background: #fee2e2; 
+  color: #991b1b; 
+  border: 1px solid #fecaca;
+}
+
+/* Image Placeholder (Icon) */
 .course-img-placeholder {
-  height: 100px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border-radius: 12px; display: flex; align-items: center; justify-content: center;
-  font-size: 40px; margin-bottom: 20px;
+  height: 90px; 
+  width: 90px;
+  margin: 0 auto 20px auto;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 50%; /* အဝိုင်းပုံစံ ပြောင်းလိုက်သည် */
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  font-size: 40px; 
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-.promo-course-title { font-size: 18px; font-weight: 800; color: var(--text-dark); margin-bottom: 5px; }
-.promo-batch { color: var(--text-gray); font-size: 14px; margin-bottom: 15px; }
-.seats-info { font-size: 13px; color: var(--primary-color); font-weight: 600; margin-bottom: 20px; }
+.promo-course-title { 
+  font-size: 18px; 
+  font-weight: 800; 
+  color: #1e293b; 
+  margin-bottom: 5px; 
+  text-align: center;
+}
 
-.promo-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-.btn-register { background: var(--primary-color); color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
-.btn-register:hover { background: var(--primary-hover); }
-.btn-full { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+.promo-batch { 
+  color: #64748b; 
+  font-size: 14px; 
+  margin-bottom: 15px; 
+  text-align: center;
+  font-weight: 500;
+}
 
-@media (max-width: 900px) {
-  .promo-grid { grid-template-columns: 1fr; }
+/* ✅ Price/Fees Style Update */
+.seats-info { 
+  font-size: 16px; /* စာလုံးအနည်းငယ် ပိုကြီးအောင်လုပ်သည် */
+  color: #2563eb; 
+  font-weight: 700; 
+  margin-bottom: 20px; 
+  text-align: center;
+  background: #eff6ff;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+/* Buttons */
+.promo-btn { 
+  width: 100%; 
+  padding: 14px; 
+  border-radius: 12px; 
+  border: none; 
+  font-weight: bold; 
+  cursor: pointer; 
+  transition: all 0.2s ease; 
+  margin-top: auto; /* ခလုတ်ကို အောက်ဆုံးသို့ ကပ်မည် */
+}
+
+.btn-register { 
+  background: #2563eb; 
+  color: white; 
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); 
+}
+
+.btn-register:hover { 
+  background: #1d4ed8; 
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.4); 
+}
+
+.btn-full { 
+  background: #e2e8f0; 
+  color: #94a3b8; 
+  cursor: not-allowed; 
+}
+
+/* Loading & Empty States */
+.cs-loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 16px;
+    color: #64748b;
+    font-weight: 500;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
   .promo-title { font-size: 22px; }
+  .promo-grid { grid-template-columns: 1fr; }
+  .promo-card { padding: 20px; }
 }
