@@ -251,7 +251,14 @@ function StudentDashboard({ student, payments, exams, onLogout, refreshData, pre
           </div>
         )}
 
-        {activeTab === 'exams' && <div className="premium-card"><h2 className="welcome-title">Exam Results</h2><ExamList exams={exams} /></div>}
+        {activeTab === 'exams' && (
+          <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+            <div className="premium-card" style={{ boxSizing: 'border-box', overflow: 'hidden' }}>
+              <h2 className="welcome-title">Exam Results</h2>
+              <ExamList exams={exams} />
+            </div>
+          </div>
+        )}
         {activeTab === 'profile' && <div style={{maxWidth:'600px', margin:'0 auto'}}><h2 className="welcome-title">My Profile</h2><StudentCard student={student} onUpdate={refreshData} /></div>}
       </div>
 
