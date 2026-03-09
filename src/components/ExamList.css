@@ -2,7 +2,8 @@
 
 .el-wrapper {
   width: 100%;
-  /* ရှင်းလင်းချက်: အပြင်က Premium Card နဲ့ ထပ်မနေအောင် Background နဲ့ Border ကို ဖြုတ်လိုက်ပါပြီ */
+  background: transparent; /* ✅ Border တွေဖြုတ်လိုက်ပါပြီ */
+  border: none;
 }
 
 .el-header {
@@ -27,14 +28,8 @@
   transition: background 0.2s ease;
 }
 
-.el-item:last-child {
-  border-bottom: none;
-}
-
-.el-item:hover {
-  background: #f8fafc;
-  border-radius: 8px;
-}
+.el-item:last-child { border-bottom: none; }
+.el-item:hover { background: #f8fafc; border-radius: 8px; }
 
 .el-col-center { text-align: center; }
 .el-col-right { text-align: right; }
@@ -62,12 +57,10 @@
 .el-mobile-label { display: none; }
 
 /* =========================================
-   📱 MOBILE RESPONSIVE (iOS, Android)
+   📱 MOBILE RESPONSIVE
    ========================================= */
 @media (max-width: 768px) {
-  .el-header { 
-      display: none; 
-  }
+  .el-header { display: none; }
   
   .el-item {
       display: flex;
@@ -81,13 +74,9 @@
       margin-bottom: 15px;
   }
 
-  .el-item:last-child {
-      margin-bottom: 0;
-  }
+  .el-item:last-child { margin-bottom: 0; }
 
-  .el-col-center, .el-col-right {
-      text-align: right; 
-  }
+  .el-col-center, .el-col-right { text-align: right; }
 
   .el-mobile-row {
       display: flex;
